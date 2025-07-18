@@ -44,9 +44,9 @@ while corriendo:
     # Dibujar fondo 
     ventana.fill((Celeste))
 
-    ventana.blit(boton_ajustes, (200,500))
-    ventana.blit(boton_jugar, (400,400))
-    ventana.blit(boton_creditos, (800,400))
+    ventana.blit(boton_ajustes, (220,580))
+    ventana.blit(boton_jugar, (550,580))
+    ventana.blit(boton_creditos, (880,580))
 
     # Obtener tamaño actual de ventana
     ancho_actual, alto_actual = ventana.get_size()
