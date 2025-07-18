@@ -9,6 +9,15 @@ negro = (0,0,0)
 blanco = (255,255,255)
 Celeste	= (135, 206, 250)
 
+# imagenes
+
+boton_ajustes = pygame.image.load("img/AJUSTES.png")
+boton_ajustes = pygame.transform.scale(boton_ajustes, (200,50))
+boton_jugar = pygame.image.load("img/JUGAR.png")
+boton_jugar = pygame.transform.scale(boton_jugar, (200,50))
+boton_creditos = pygame.image.load("img/CREDITOS.png")
+boton_creditos = pygame.transform.scale(boton_creditos, (200,50))
+
 # tamaño de pantalla
 info = pygame.display.Info()
 ancho = info.current_w
@@ -34,6 +43,10 @@ while corriendo:
             
     # Dibujar fondo 
     ventana.fill((Celeste))
+
+    ventana.blit(boton_ajustes, (200,500))
+    ventana.blit(boton_jugar, (400,400))
+    ventana.blit(boton_creditos, (800,400))
 
     # Obtener tamaño actual de ventana
     ancho_actual, alto_actual = ventana.get_size()
