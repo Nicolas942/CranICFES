@@ -17,6 +17,7 @@ boton_jugar = pygame.image.load("img/JUGAR.png")
 boton_jugar = pygame.transform.scale(boton_jugar, (200,50))
 boton_creditos = pygame.image.load("img/CREDITOS.png")
 boton_creditos = pygame.transform.scale(boton_creditos, (200,50))
+logo_juego = pygame.image.load("img/logo_juego.png")
 
 # tamaño de pantalla
 info = pygame.display.Info()
@@ -47,6 +48,7 @@ while corriendo:
     ventana.blit(boton_ajustes, (220,580))
     ventana.blit(boton_jugar, (550,580))
     ventana.blit(boton_creditos, (880,580))
+    ventana.blit(logo_juego, (400,50))
 
     # Obtener tamaño actual de ventana
     ancho_actual, alto_actual = ventana.get_size()
