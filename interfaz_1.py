@@ -13,7 +13,7 @@ rojo = (255, 0, 0)
 info = pygame.display.Info()
 ancho = info.current_w
 alto = info.current_h
-ventana = pygame.display.set_mode((ancho, alto), pygame.RESIZABLE)
+ventana = pygame.display.set_mode((ancho, alto))
 pygame.display.set_caption("CranICFES")
 
 boton_ajustes_img = pygame.image.load("img/AJUSTES.png")
