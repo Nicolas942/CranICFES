@@ -35,15 +35,15 @@ logo_juego = pygame.image.load("img/logo_juego.png")
 
 fondo = pygame.image.load("img/FONDO.png")
 
-pos_ajustes = (220, 580)
+pos_ajustes = (250, 580)
 rect_ajustes = boton_ajustes.get_rect(topleft=pos_ajustes)
 rect_ajustes_hover = boton_ajustes_hover.get_rect(center=rect_ajustes.center)
 
-pos_jugar = (550, 580)
+pos_jugar = (585, 580)
 rect_jugar = boton_jugar.get_rect(topleft=pos_jugar)
 rect_jugar_hover = boton_jugar_hover.get_rect(center=rect_jugar.center)
 
-pos_creditos = (880, 580)
+pos_creditos = (920, 580)
 rect_creditos = boton_creditos.get_rect(topleft=pos_creditos)
 rect_creditos_hover = boton_creditos_hover.get_rect(center=rect_creditos.center)
 
@@ -75,7 +75,7 @@ while corriendo:
                     pantalla_actual = "creditos"
 
     if pantalla_actual == "menu":
-        ventana.blit(fondo, (-50,-150))
+        ventana.blit(fondo, (-20,-150))
 
         if rect_ajustes.collidepoint(mouse_pos):
             ventana.blit(boton_ajustes_hover, rect_ajustes_hover)
@@ -92,7 +92,7 @@ while corriendo:
         else:
             ventana.blit(boton_creditos, rect_creditos)
 
-        ventana.blit(logo_juego, (400, 40))
+        ventana.blit(logo_juego, (430, 40))
 
     elif pantalla_actual == "ajustes":
         ventana.fill((200, 200, 255))
