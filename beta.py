@@ -105,8 +105,6 @@ while corriendo:
     elif pantalla_actual == "jugar":
         ventana.fill((255, 255, 200))
         font = pygame.font.SysFont(None, 60)
-        texto = font.render("juego:)", True, negro)
-        ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
         ventana.blit(circulo, (150,500))
 
     elif pantalla_actual == "creditos":
@@ -121,3 +119,4 @@ while corriendo:
 
 pygame.quit()
 sys.exit()
+
