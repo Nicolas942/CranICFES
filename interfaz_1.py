@@ -28,12 +28,19 @@ boton_creditos_img = pygame.image.load("img/CREDITOS.png")
 boton_creditos = pygame.transform.scale(boton_creditos_img, (200, 50))
 boton_creditos_hover = pygame.transform.scale(boton_creditos_img, (220, 55))
 
+boton_youtube = pygame.image.load("img/LOGO_YT.png")
+boton_youtube = pygame.transform.scale(boton_youtube, (100,100))
+boton_youtube_hover = pygame.transform.scale(boton_youtube, (50,300))
+
+
+
 circulo = pygame.image.load("img/circulo.jpg")
 circulo = pygame.transform.scale(circulo, (50,50))
 
 logo_juego = pygame.image.load("img/logo_juego.png")
 
 fondo = pygame.image.load("img/FONDO.png")
+
 
 pos_ajustes = (250, 580)
 rect_ajustes = boton_ajustes.get_rect(topleft=pos_ajustes)
@@ -46,6 +53,10 @@ rect_jugar_hover = boton_jugar_hover.get_rect(center=rect_jugar.center)
 pos_creditos = (920, 580)
 rect_creditos = boton_creditos.get_rect(topleft=pos_creditos)
 rect_creditos_hover = boton_creditos_hover.get_rect(center=rect_creditos.center)
+
+pos_youtube = (50, 300)
+rect_youtube = boton_creditos.get_rect(topleft=pos_youtube)
+rect_youtube_hover = boton_youtube_hover.get_rect(center=rect_youtube.center)
 
 pantalla_actual = "menu"
 
@@ -73,6 +84,8 @@ while corriendo:
                     pantalla_actual = "jugar"
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
+                elif rect_creditos.collidepoint(mouse_pos):
+                    pantalla_actual = "youtube"
 
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-20,-150))
@@ -91,6 +104,11 @@ while corriendo:
             ventana.blit(boton_creditos_hover, rect_creditos_hover)
         else:
             ventana.blit(boton_creditos, rect_creditos)
+
+        if rect_youtube.collidepoint(mouse_pos):
+            ventana.blit(boton_youtube_hover, rect_youtube_hover)
+        else:
+            ventana.blit(boton_youtube, rect_youtube)
 
         ventana.blit(logo_juego, (430, 40))
 
@@ -115,6 +133,13 @@ while corriendo:
         texto = font.render("Créditos", True, negro)
         ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
 
+    elif pantalla_actual == "LOGO_YT":
+        ventana.fill((255, 0, 200))
+        font = pygame.font.SysFont(None, 60)
+        texto = font.render("link", True, negro)
+        ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
+
+        
         pygame.draw.rect(ventana, rojo, boton_salir)
 
     pygame.display.flip()
