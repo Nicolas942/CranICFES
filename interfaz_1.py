@@ -32,6 +32,10 @@ boton_youtube = pygame.image.load("img/LOGO_YT.png")
 boton_youtube = pygame.transform.scale(boton_youtube, (100,100))
 boton_youtube_hover = pygame.transform.scale(boton_youtube, (50,300))
 
+personaje_interfaz = pygame.image.load("img/MAGO_MTMC.png")
+personaje_interfaz = pygame.transform.scale(personaje_interfaz, (250,250))
+personaje_interfaz_hover = pygame.transform.scale(personaje_interfaz, (500,300))
+
 
 
 circulo = pygame.image.load("img/circulo.jpg")
@@ -111,6 +115,7 @@ while corriendo:
             ventana.blit(boton_youtube, rect_youtube)
 
         ventana.blit(logo_juego, (430, 40))
+        ventana.blit(personaje_interfaz, (600,50))
 
     elif pantalla_actual == "ajustes":
         ventana.fill((200, 200, 255))
