@@ -28,14 +28,13 @@ boton_creditos_img = pygame.image.load("img/CREDITOS.png")
 boton_creditos = pygame.transform.scale(boton_creditos_img, (200, 50))
 boton_creditos_hover = pygame.transform.scale(boton_creditos_img, (220, 55))
 
-boton_youtube = pygame.image.load("img/LOGO_YT.png")
-boton_youtube = pygame.transform.scale(boton_youtube, (100,100))
-boton_youtube_hover = pygame.transform.scale(boton_youtube, (50,300))
+boton_youtube_img = pygame.image.load("img/LOGO_YT.png")
+boton_youtube = pygame.transform.scale(boton_youtube_img, (150,150))
+boton_youtube_hover = pygame.transform.scale(boton_youtube_img, (200,200))
 
-personaje_interfaz = pygame.image.load("img/MAGO_MTMC.png")
-personaje_interfaz = pygame.transform.scale(personaje_interfaz, (250,250))
-personaje_interfaz_hover = pygame.transform.scale(personaje_interfaz, (500,300))
-
+personaje_interfaz_img = pygame.image.load("img/MAGO_MTMC.png")
+personaje_interfaz = pygame.transform.scale(personaje_interfaz_img, (250,250))
+personaje_interfaz_hover = pygame.transform.scale(personaje_interfaz_img, (300,300))
 
 
 circulo = pygame.image.load("img/circulo.jpg")
@@ -58,9 +57,13 @@ pos_creditos = (920, 580)
 rect_creditos = boton_creditos.get_rect(topleft=pos_creditos)
 rect_creditos_hover = boton_creditos_hover.get_rect(center=rect_creditos.center)
 
-pos_youtube = (50, 300)
+pos_youtube = (60, 300)
 rect_youtube = boton_creditos.get_rect(topleft=pos_youtube)
 rect_youtube_hover = boton_youtube_hover.get_rect(center=rect_youtube.center)
+
+pos_mago = (1100, 220)
+rect_mago = personaje_interfaz.get_rect(topleft=pos_mago)
+rect_mago_hover = personaje_interfaz_hover.get_rect(center=rect_mago.center)
 
 pantalla_actual = "menu"
 
@@ -90,6 +93,8 @@ while corriendo:
                     pantalla_actual = "creditos"
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "youtube"
+                elif rect_mago.collidepoint(mouse_pos):
+                    pantalla_actual = "mago"
 
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-20,-150))
@@ -114,8 +119,12 @@ while corriendo:
         else:
             ventana.blit(boton_youtube, rect_youtube)
 
+        if rect_mago.collidepoint(mouse_pos):
+            ventana.blit(personaje_interfaz_hover, rect_mago_hover)
+        else:
+            ventana.blit(personaje_interfaz, rect_mago)
+
         ventana.blit(logo_juego, (430, 40))
-        ventana.blit(personaje_interfaz, (600,50))
 
     elif pantalla_actual == "ajustes":
         ventana.fill((200, 200, 255))
@@ -136,12 +145,6 @@ while corriendo:
         ventana.fill((255, 255, 200))
         font = pygame.font.SysFont(None, 60)
         texto = font.render("Créditos", True, negro)
-        ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
-
-    elif pantalla_actual == "LOGO_YT":
-        ventana.fill((255, 0, 200))
-        font = pygame.font.SysFont(None, 60)
-        texto = font.render("link", True, negro)
         ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
 
         
