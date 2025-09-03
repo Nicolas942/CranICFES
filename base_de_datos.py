@@ -18,14 +18,7 @@ try:
     print("\nPregunta:")
     print(documento_aleatorio["pregunta"])
 
-    respuesta_multiple(documento_aleatorio)
-    
-    respuesta = int(input("Ingrese el número de su respuesta: "))
-
-    if documento_aleatorio["opciones"][respuesta - 1] == documento_aleatorio["respuesta"]:
-        print("La respuesta es correcta")
-    else:
-        print("La respuesta es incorrecta")
+    respuesta_multiple(documento_aleatorio)   
 
 except Exception as ex:
     print("Error durante la conexion: {}".format(ex))
