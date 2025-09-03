@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import pymongo
-=======
 import random
 from pymongo import MongoClient
 
@@ -28,4 +25,3 @@ except Exception as ex:
 finally:
     cliente.close()
 
->>>>>>> c5327b4e0fda55ad1f60966d4f4099ede3926a4a
