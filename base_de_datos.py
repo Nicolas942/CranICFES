@@ -1,45 +1,51 @@
 from pymongo import MongoClient
 import random
 
-# === Conexión a la base de datos ===
+# === Conexión a MongoDB ===
 cliente = None
 coleccion = None
 
 try:
+    # Usa tu URL de conexión
     cliente = MongoClient("mongodb+srv://Cranicfes:Nikolas200605@cranicfes.f5idx6n.mongodb.net/?retryWrites=true&w=majority&appName=CranICFES")
+    
+    # Selecciona la base de datos y colección
     base_datos = cliente["CranICFES"]
     coleccion = base_datos["preguntas"]
+    
+    # Prueba de conexión
+    cliente.admin.command('ping')
     print("✅ Conexión exitosa a la base de datos")
 except Exception as ex:
     print("❌ Error al conectar a MongoDB:", ex)
 
-# === Función que devuelve una pregunta aleatoria con formato usable ===
-def obtener_pregunta_aleatoria():
+# === Función principal: obtener una pregunta aleatoria filtrada por materia ===
+def obtener_pregunta_aleatoria(materia=None):
     if coleccion is None:
-        print("⚠️  Colección no disponible")
+        print("⚠️  Colección no disponible. Revisa la conexión.")
         return None
 
     try:
-        documentos = list(coleccion.find())
+        # Filtro por materia si se especifica
+        filtro = {"materia": materia} if materia else {}
+        
+        # Obtener todos los documentos que coincidan
+        documentos = list(coleccion.find(filtro))
+        
         if not documentos:
-            print("⚠️  No hay preguntas en la base de datos")
+            print(f"⚠️  No se encontraron preguntas para la materia: {materia}")
             return None
 
+        # Elegir una pregunta al azar
         documento = random.choice(documentos)
+        
+        # Devolver datos estructurados
         return {
             "pregunta": documento["pregunta"],
             "opciones": documento["opciones"],
-            "correcta": documento.get("correcta")  # opcional: índice de la correcta
+            "respuesta": documento.get("respuesta"),  # índice de la opción correcta
+            "materia": documento["materia"]
         }
     except Exception as ex:
-        print("❌ Error al obtener pregunta:", ex)
+        print("❌ Error al obtener pregunta desde la base de datos:", ex)
         return None
-
-# === Función auxiliar para usar en consola (opcional) ===
-def mostrar_en_consola(pregunta_data):
-    if pregunta_data:
-        print("\nPregunta:")
-        print(pregunta_data["pregunta"])
-        for i, opcion in enumerate(pregunta_data["opciones"], 1):
-            marca = "✅" if i - 1 == pregunta_data.get("correcta") else ""
-            print(f"{i}. {opcion} {marca}")

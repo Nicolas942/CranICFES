@@ -4,17 +4,16 @@ from base_de_datos import obtener_pregunta_aleatoria
 
 pygame.init()
 
-# === Colores (definidos directamente en el diccionario) ===
+# === Colores ===
 NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
 
-# === Mapa de materias a colores (CORREGIDO según tu indicación) ===
+# === Mapa de materias a colores (según tu especificación) ===
 materias = {
     "Matematicas": (255, 0, 0),        # Rojo
     "Español": (255, 255, 0),          # Amarillo
-    "Lectura Critica": (255, 165, 0),  # Naranja
     "Naturales": (0, 128, 0),          # Verde
-    "Sociales": (0, 0, 255),           # Azul
+    "Sociales": (255, 165, 0),           # naranja
     "Ingles": (128, 0, 128)            # Morado
 }
 
@@ -91,7 +90,6 @@ circulos = [
     {"centro": (325, 265), "radio": 40, "materia": "Ingles"},
     {"centro": (650, 200), "radio": 40, "materia": "Naturales"},
     {"centro": (720, 300), "radio": 40, "materia": "Español"},
-    {"centro": (580, 350), "radio": 40, "materia": "Lectura Critica"}
 ]
 
 # === Sprite del equipo ===
@@ -108,8 +106,12 @@ grupo_equipo_1 = pygame.sprite.Group(equipo1)
 # === Estado del juego ===
 pantalla_actual = "menu"
 mostrando_pregunta = False
+mostrando_retroalimentacion = False
+mensaje_retro = ""
+color_retro = BLANCO
 pregunta_data = None
-botones_opciones = []
+botones_opciones = []  # Lista de tuplas: (rect, índice)
+temporizador_retro = 0  # Tiempo en ms cuando se muestra retro
 
 # === Fuentes ===
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
@@ -122,13 +124,15 @@ while corriendo:
     mouse_pos = pygame.mouse.get_pos()
     boton_salir = pygame.Rect(ventana.get_width() - 70, 20, 40, 40)
 
+    # === Eventos ===
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             corriendo = False
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
-                if mostrando_pregunta:
+                if mostrando_pregunta or mostrando_retroalimentacion:
                     mostrando_pregunta = False
+                    mostrando_retroalimentacion = False
                 else:
                     corriendo = False
         elif evento.type == pygame.VIDEORESIZE:
@@ -137,6 +141,7 @@ while corriendo:
             if pantalla_actual in ["ajustes", "creditos", "jugar"] and boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
+                mostrando_retroalimentacion = False
             elif pantalla_actual == "menu":
                 if rect_ajustes.collidepoint(mouse_pos):
                     pantalla_actual = "ajustes"
@@ -162,8 +167,8 @@ while corriendo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
 
-            # === Jugar: clic en círculo → pregunta de esa materia ===
-            elif pantalla_actual == "jugar" and not mostrando_pregunta:
+            # === Jugar: clic en círculo → mostrar pregunta ===
+            elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circ in circulos:
                     centro = circ["centro"]
                     radio = circ["radio"]
@@ -171,22 +176,38 @@ while corriendo:
                     if distancia <= radio:
                         materia = circ["materia"]
                         pregunta_data = obtener_pregunta_aleatoria(materia)
-                        if pregunta_data:  # ✅ Corregido: ahora es completo
+                        if pregunta_data:  # Verifica que haya pregunta
                             mostrando_pregunta = True
                             botones_opciones = []
                         break
 
-            # === Responder pregunta ===
+            # === Responder con clic en opción ===
             elif mostrando_pregunta:
-                for i, rect_boton in enumerate(botones_opciones):
+                for rect_boton, opcion_idx in botones_opciones:
                     if rect_boton.collidepoint(mouse_pos):
-                        if i == pregunta_data["correcta"]:
-                            print(f"✅ ¡Correcto! Materia: {pregunta_data['materia']}")
-                            # Opcional: mover equipo al círculo
-                            equipo1.rect.center = circ["centro"]  # Asigna el circ actual
+                        # Validar y convertir el índice correcto
+                        try:
+                            correcta_raw = pregunta_data["respuesta"]
+                            if isinstance(correcta_raw, str):
+                                correcta_idx = int(correcta_raw)
+                            else:
+                                correcta_idx = correcta_raw
+                        except (ValueError, TypeError):
+                            correcta_idx = None
+
+                        # Validar respuesta
+                        if correcta_idx == opcion_idx:
+                            mensaje_retro = "¡Correcto!"
+                            color_retro = (0, 255, 0)  # Verde
+                            equipo1.rect.center = circ["centro"]
                         else:
-                            print(f"❌ Incorrecto. La correcta era: {pregunta_data['opciones'][pregunta_data['correcta']]}")
+                            mensaje_retro = "Incorrecto"
+                            color_retro = (255, 0, 0)  # Rojo
+
+                        # Cambiar estado
                         mostrando_pregunta = False
+                        mostrando_retroalimentacion = True
+                        temporizador_retro = pygame.time.get_ticks()  # Guardar tiempo actual
                         break
 
     # === Renderizado ===
@@ -212,14 +233,13 @@ while corriendo:
     elif pantalla_actual == "jugar":
         ventana.blit(tablero, (0, 0))
 
-        # Dibujar círculos por materia con colores correctos
+        # Dibujar círculos por materia
         for circ in circulos:
             centro = circ["centro"]
             radio = circ["radio"]
             materia = circ["materia"]
             color = materias[materia]
             pygame.draw.circle(ventana, color, centro, radio)
-            # Etiqueta pequeña con el nombre
             texto_materia = fuente_ayuda.render(materia, True, NEGRO)
             ventana.blit(texto_materia, (centro[0] - texto_materia.get_width() // 2, centro[1] - 8))
 
@@ -234,33 +254,60 @@ while corriendo:
             overlay.fill(NEGRO)
             ventana.blit(overlay, (0, 0))
 
-            # Título de materia con color
+            # Título de materia
             titulo_materia = fuente_pregunta.render(f"{pregunta_data['materia']}", True, materias[pregunta_data['materia']])
             ventana.blit(titulo_materia, (ANCHO // 2 - titulo_materia.get_width() // 2, 80))
 
             # Pregunta
             render_pregunta = fuente_pregunta.render(pregunta_data["pregunta"], True, BLANCO)
-            rect_preg = render_pregunta.get_rect(center=(ANCHO // 2, 150))
-            ventana.blit(render_pregunta, rect_preg)
+            ventana.blit(render_pregunta, render_pregunta.get_rect(center=(ANCHO // 2, 150)))
 
-            # Opciones
+            # Opciones clickeables
             y_opcion = 220
             botones_opciones.clear()
             for i, opcion in enumerate(pregunta_data["opciones"]):
                 texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
                 rect_boton = texto.get_rect(center=(ANCHO // 2, y_opcion))
-                ventana.blit(texto, rect_boton)
-                botones_opciones.append(rect_boton)
-                y_opcion += 50
 
-            mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (0, 200, 255))
+                # Hover visual
+                if rect_boton.collidepoint(mouse_pos):
+                    pygame.draw.rect(ventana, (100, 100, 100), rect_boton.inflate(30, 15), border_radius=10)
+                else:
+                    pygame.draw.rect(ventana, (50, 50, 50), rect_boton.inflate(30, 15), border_radius=10)
+
+                ventana.blit(texto, rect_boton)
+                botones_opciones.append((rect_boton, i))
+                y_opcion += 60
+
+            # Instrucción
+            mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
             ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 30))
+
+        # === Mostrar retroalimentación ===
+        if mostrando_retroalimentacion:
+            overlay = pygame.Surface((ANCHO, ALTO))
+            overlay.set_alpha(200)
+            overlay.fill(NEGRO)
+            ventana.blit(overlay, (0, 0))
+
+            fuente_grande = pygame.font.SysFont("Arial", 72, bold=True)
+            texto = fuente_grande.render(mensaje_retro, True, color_retro)
+            rect_texto = texto.get_rect(center=(ANCHO // 2, ALTO // 2))
+            ventana.blit(texto, rect_texto)
+
+            instruccion = fuente_ayuda.render("Cerrando en 2 segundos...", True, BLANCO)
+            ventana.blit(instruccion, (ANCHO // 2 - instruccion.get_width() // 2, ALTO // 2 + 60))
 
     elif pantalla_actual == "creditos":
         ventana.blit(fondo, (-50, -150))
         texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+
+    # === Cerrar retroalimentación después de 2 segundos ===
+    if mostrando_retroalimentacion:
+        if pygame.time.get_ticks() - temporizador_retro > 2000:
+            mostrando_retroalimentacion = False
 
     pygame.display.flip()
 
