@@ -43,4 +43,3 @@ def mostrar_en_consola(pregunta_data):
         for i, opcion in enumerate(pregunta_data["opciones"], 1):
             marca = "✅" if i - 1 == pregunta_data.get("correcta") else ""
             print(f"{i}. {opcion} {marca}")
-
