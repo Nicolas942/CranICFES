@@ -1,5 +1,6 @@
 import pygame
 import sys
+import webbrowser 
 
 pygame.init()
 
@@ -16,6 +17,8 @@ alto = info.current_h
 ventana = pygame.display.set_mode((ancho, alto))
 pygame.display.set_caption("CranICFES")
 
+url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"
+
 boton_ajustes_img = pygame.image.load("img/AJUSTES.png")
 boton_ajustes = pygame.transform.scale(boton_ajustes_img, (200, 50))
 boton_ajustes_hover = pygame.transform.scale(boton_ajustes_img, (220, 55))
@@ -28,14 +31,17 @@ boton_creditos_img = pygame.image.load("img/CREDITOS.png")
 boton_creditos = pygame.transform.scale(boton_creditos_img, (200, 50))
 boton_creditos_hover = pygame.transform.scale(boton_creditos_img, (220, 55))
 
-boton_youtube_img = pygame.image.load("img/LOGO_YT.png")
-boton_youtube = pygame.transform.scale(boton_youtube_img, (150,150))
-boton_youtube_hover = pygame.transform.scale(boton_youtube_img, (200,200))
+boton_youtube = pygame.image.load("img/LOGO_YT.png")
+boton_youtube = pygame.transform.scale(boton_youtube, (150,150))
+boton_youtube_hover = pygame.transform.scale(boton_youtube, (200,200))
 
 personaje_interfaz_img = pygame.image.load("img/MAGO_MTMC.png")
 personaje_interfaz = pygame.transform.scale(personaje_interfaz_img, (250,250))
 personaje_interfaz_hover = pygame.transform.scale(personaje_interfaz_img, (300,300))
 
+boton_atras_img = pygame.image.load("img/BOTON_SALIR.png")  # Asegúrate de tener esta imagen
+boton_atras = pygame.transform.scale(boton_atras_img, (50, 50))
+boton_atras_hover = pygame.transform.scale(boton_atras_img, (60, 60))  # Un poco más grande en hover
 
 circulo = pygame.image.load("img/circulo.jpg")
 circulo = pygame.transform.scale(circulo, (50,50))
@@ -65,12 +71,18 @@ pos_mago = (1100, 220)
 rect_mago = personaje_interfaz.get_rect(topleft=pos_mago)
 rect_mago_hover = personaje_interfaz_hover.get_rect(center=rect_mago.center)
 
+pos_atras = (ventana.get_width() - 70, 10)  # Posición: esquina superior derecha
+rect_atras = boton_atras.get_rect(topleft=pos_atras)
+rect_atras_hover = boton_atras_hover.get_rect(center=rect_atras.center)
+
 pantalla_actual = "menu"
 
 corriendo = True
 while corriendo:
     mouse_pos = pygame.mouse.get_pos()
-    boton_salir = pygame.Rect(ventana.get_width() - 60, 10, 50, 50) 
+    pos_atras = (ventana.get_width() - 70, 10)
+    rect_atras = boton_atras.get_rect(topleft=pos_atras)
+    rect_atras_hover = boton_atras_hover.get_rect(center=rect_atras.center)
     
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -81,7 +93,7 @@ while corriendo:
         elif evento.type == pygame.VIDEORESIZE:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-            if pantalla_actual in ["ajustes", "creditos"] and boton_salir.collidepoint(mouse_pos):
+            if pantalla_actual in ["ajustes", "creditos"] and rect_atras.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
 
             if pantalla_actual == "menu":
@@ -91,8 +103,8 @@ while corriendo:
                     pantalla_actual = "jugar"
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
-                elif rect_creditos.collidepoint(mouse_pos):
-                    pantalla_actual = "youtube"
+                elif pantalla_actual == "menu" and rect_youtube.collidepoint(mouse_pos):
+                    webbrowser.open(url_youtube)  # Abre el enlace en el navegador
                 elif rect_mago.collidepoint(mouse_pos):
                     pantalla_actual = "mago"
 
@@ -132,7 +144,10 @@ while corriendo:
         texto = font.render("Pantalla de Ajustes", True, negro)
         ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
 
-        pygame.draw.rect(ventana, rojo, boton_salir)
+        if rect_atras.collidepoint(mouse_pos):
+            ventana.blit(boton_atras_hover, rect_atras_hover)
+        else:
+            ventana.blit(boton_atras, rect_atras)
 
     elif pantalla_actual == "jugar":
         ventana.fill((255, 255, 200))
@@ -147,8 +162,6 @@ while corriendo:
         texto = font.render("Créditos", True, negro)
         ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
 
-        
-        pygame.draw.rect(ventana, rojo, boton_salir)
 
     pygame.display.flip()
 
