@@ -23,5 +23,5 @@ try:
 except Exception as ex:
     print("Error durante la conexion: {}".format(ex))
 finally:
-    cliente.close()
+ pass
 

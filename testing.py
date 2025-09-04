@@ -51,7 +51,8 @@ boton_vol_down_hover = cargar_img("img/vol_down.png", (220, 55))
 circulo = cargar_img("img/circulo.jpg", (50, 50))
 logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
-tablero = cargar_img("img/tablero1.png")
+
+tablero = cargar_img("img/tablero1.png",(1366,720))
 
 # === Posiciones menú principal ===
 pos_ajustes = (220, 580)
@@ -89,10 +90,11 @@ class Equipo1(pygame.sprite.Sprite):
         self.image.fill((255, 0, 0))
         self.rect = self.image.get_rect(topleft=(x, y))
 
-equipo1 = Equipo1(170, 520)
+equipo1 = Equipo1(510,90)
 grupo_equipo_1 = pygame.sprite.Group(equipo1)
 
 pantalla_actual = "menu"
+pregunta_mostrada = False  # ✅ Nueva variable de control
 
 corriendo = True
 while corriendo:
@@ -110,7 +112,7 @@ while corriendo:
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             if pantalla_actual in ["ajustes", "creditos", "jugar"] and boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
-
+                pregunta_mostrada = False  # ✅ Se resetea al salir
             elif pantalla_actual == "menu":
                 if rect_ajustes.collidepoint(mouse_pos):
                     pantalla_actual = "ajustes"
@@ -118,7 +120,6 @@ while corriendo:
                     pantalla_actual = "jugar"
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
-
             elif pantalla_actual == "ajustes":
                 if musica_activa and rect_mute.collidepoint(mouse_pos):
                     pygame.mixer.Sound.stop(sonido_fondo)
@@ -162,11 +163,17 @@ while corriendo:
         ventana.blit(boton_vol_down_hover if rect_vol_down.collidepoint(mouse_pos) else boton_vol_down, rect_vol_down.topleft)
 
     elif pantalla_actual == "jugar":
+        from base_de_datos import respuesta_multiple, coleccion
+        import random
+        circulo= pygame.draw.circle(ventana, NEGRO, (510,90),50)
         ventana.blit(tablero, (0,0))
-        ventana.blit(circulo, (510, 60))
         grupo_equipo_1.update()
         grupo_equipo_1.draw(ventana)
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+        if equipo1.rect.colliderect(circulo) and not pregunta_mostrada:  # ✅ Solo una vez
+            documento_aleatorio = random.choice(list(coleccion.find()))
+            respuesta_multiple(documento_aleatorio)
+            pregunta_mostrada = True  # ✅ Bloquea nuevas preguntas
 
     elif pantalla_actual == "creditos":
         ventana.blit(fondo, (-50, -150))
