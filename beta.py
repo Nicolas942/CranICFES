@@ -8,6 +8,14 @@ NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
 CELESTE = (135, 206, 250)
 ROJO = (255, 0, 0)
+VERDE_CLARO = (100, 255, 100)
+ROJO_CLARO = (255, 100, 100)
+
+# Sonidos
+pygame.mixer.init()
+sonido_fondo = pygame.mixer.Sound("Sonidos/Fondo.mp3")
+pygame.mixer.Sound.play(sonido_fondo, loops=-1)
+musica_activa = True 
 
 # Pantalla
 info = pygame.display.Info()
@@ -55,7 +63,7 @@ class Equipo1(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.Surface((15, 15))
         self.image.fill(ROJO)
-        self.rect = self.image.get_rect(topleft=(x,y))
+        self.rect = self.image.get_rect(topleft=(x, y))
 
 equipo1 = Equipo1(170, 520)
 grupo_equipo_1 = pygame.sprite.Group(equipo1)
@@ -63,10 +71,15 @@ grupo_equipo_1 = pygame.sprite.Group(equipo1)
 # Pantalla inicial
 pantalla_actual = "menu"
 
+# Botones de ajustes
+boton_silencio = pygame.Rect(100, 150, 50, 50)
+boton_vol_up = pygame.Rect(170, 150, 50, 50)
+boton_vol_down = pygame.Rect(240, 150, 50, 50)
+
 corriendo = True
 while corriendo:
     mouse_pos = pygame.mouse.get_pos()
-    boton_salir = pygame.Rect(ventana.get_width() - 60, 10, 50, 50) 
+    boton_salir = pygame.Rect(ventana.get_width() - 60, 10, 50, 50)
 
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -86,24 +99,56 @@ while corriendo:
                     pantalla_actual = "jugar"
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
+            elif pantalla_actual == "ajustes":
+                if boton_silencio.collidepoint(mouse_pos):
+                    if musica_activa:
+                        pygame.mixer.Sound.stop(sonido_fondo)
+                        musica_activa = False
+                    else:
+                        pygame.mixer.Sound.play(sonido_fondo, loops=-1)
+                        musica_activa = True
+                elif boton_vol_up.collidepoint(mouse_pos):
+                    volumen_actual = sonido_fondo.get_volume()
+                    nuevo_volumen = min(1.0, volumen_actual + 0.1)
+                    sonido_fondo.set_volume(nuevo_volumen)
+                elif boton_vol_down.collidepoint(mouse_pos):
+                    volumen_actual = sonido_fondo.get_volume()
+                    nuevo_volumen = max(0.0, volumen_actual - 0.1)
+                    sonido_fondo.set_volume(nuevo_volumen)
 
     # Renderizado según la pantalla
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-50, -150))
-
-        # Dibujar botones con hover
-        ventana.blit(boton_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else boton_ajustes, rect_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else rect_ajustes)
-        ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar, rect_jugar_hover if rect_jugar.collidepoint(mouse_pos) else rect_jugar)
-        ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos, rect_creditos_hover if rect_creditos.collidepoint(mouse_pos) else rect_creditos)
-
+        ventana.blit(boton_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else boton_ajustes,
+                     rect_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else rect_ajustes)
+        ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar,
+                     rect_jugar_hover if rect_jugar.collidepoint(mouse_pos) else rect_jugar)
+        ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos,
+                     rect_creditos_hover if rect_creditos.collidepoint(mouse_pos) else rect_creditos)
         ventana.blit(logo_juego, (400, 40))
 
     elif pantalla_actual == "ajustes":
-        ventana.fill((200, 200, 255))
+        ventana.blit(fondo, (-50, -150))
+        
         font = pygame.font.SysFont(None, 60)
-        texto = font.render("Pantalla de Ajustes", True, NEGRO)
-        ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
+        texto = font.render("AJUSTES", True, NEGRO)
+        ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, 30))
+
         pygame.draw.rect(ventana, ROJO, boton_salir)
+
+        pygame.draw.rect(ventana, CELESTE, boton_silencio)
+
+        pygame.draw.rect(ventana, VERDE_CLARO, boton_vol_up)
+        pygame.draw.rect(ventana, ROJO_CLARO, boton_vol_down)
+
+        font_vol = pygame.font.SysFont(None, 40)
+        texto_plus = font_vol.render("+", True, NEGRO)
+        texto_minus = font_vol.render("-", True, NEGRO)
+
+        ventana.blit(texto_plus, (boton_vol_up.centerx - texto_plus.get_width() // 2,
+                                  boton_vol_up.centery - texto_plus.get_height() // 2))
+        ventana.blit(texto_minus, (boton_vol_down.centerx - texto_minus.get_width() // 2,
+                                   boton_vol_down.centery - texto_minus.get_height() // 2))
 
     elif pantalla_actual == "jugar":
         ventana.fill((255, 255, 200))
@@ -113,7 +158,7 @@ while corriendo:
         pygame.draw.rect(ventana, ROJO, boton_salir)
 
     elif pantalla_actual == "creditos":
-        ventana.fill((255, 255, 200))
+        ventana.blit(fondo, (-50, -150))
         font = pygame.font.SysFont(None, 60)
         texto = font.render("Créditos", True, NEGRO)
         ventana.blit(texto, (ventana.get_width() // 2 - texto.get_width() // 2, ventana.get_height() // 2 - 30))
@@ -123,5 +168,3 @@ while corriendo:
 
 pygame.quit()
 sys.exit()
-
-
