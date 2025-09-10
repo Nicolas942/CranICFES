@@ -1,6 +1,6 @@
 import pygame
 import sys
-import webbrowser  # <-- AGREGADO desde Código 1
+import webbrowser  
 from base_de_datos import obtener_pregunta_aleatoria
 
 pygame.init()
@@ -8,7 +8,7 @@ pygame.init()
 # === Colores ===
 NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
-CELESTE = (135, 206, 250)  # <-- Tomado del Código 1
+CELESTE = (135, 206, 250)  
 
 # === Mapa de materias a colores ===
 materias = {
@@ -53,7 +53,7 @@ logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
 tablero = cargar_img("img/tablero1.png", (1366, 720))
 
-# === Botones menú (tomados del Código 2, pero puedes reemplazar por los del Código 1 si lo prefieres) ===
+
 boton_ajustes = cargar_img("img/AJUSTES.png", (200, 50))
 boton_ajustes_hover = cargar_img("img/AJUSTES.png", (220, 55))
 boton_jugar = cargar_img("img/JUGAR.png", (200, 50))
@@ -61,8 +61,8 @@ boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
 
-# === Elementos tomados del Código 1 ===
-url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"  # <-- YouTube
+
+url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"  
 boton_youtube = cargar_img("img/LOGO_YT.png", (150, 150))
 boton_youtube_hover = cargar_img("img/LOGO_YT.png", (200, 200))
 personaje_interfaz = cargar_img("img/MAGO_MTMC.png", (250, 250))
@@ -168,9 +168,9 @@ while corriendo:
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
                 elif rect_youtube.collidepoint(mouse_pos):
-                    webbrowser.open(url_youtube)  # <-- Funcionalidad de Código 1
+                    webbrowser.open(url_youtube)  
                 elif rect_mago.collidepoint(mouse_pos):
-                    pantalla_actual = "mago"  # <-- Nueva pantalla
+                    pantalla_actual = "mago"  
 
             # Ajustes: controles de audio
             elif pantalla_actual == "ajustes":
@@ -331,7 +331,7 @@ while corriendo:
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
 
-    elif pantalla_actual == "mago":  # <-- Nueva pantalla desde Código 1
+    elif pantalla_actual == "mago":  
         ventana.fill((255, 255, 200))
         font = pygame.font.SysFont(None, 60)
         texto = font.render("¡Hola, soy el Mago MTMC!", True, NEGRO)
