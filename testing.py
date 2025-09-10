@@ -1,5 +1,6 @@
 import pygame
 import sys
+import webbrowser  # <-- AGREGADO desde Código 1
 from base_de_datos import obtener_pregunta_aleatoria
 
 pygame.init()
@@ -7,13 +8,14 @@ pygame.init()
 # === Colores ===
 NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
+CELESTE = (135, 206, 250)  # <-- Tomado del Código 1
 
-# === Mapa de materias a colores (según tu especificación) ===
+# === Mapa de materias a colores ===
 materias = {
     "Matematicas": (255, 0, 0),        # Rojo
     "Español": (255, 255, 0),          # Amarillo
     "Naturales": (0, 128, 0),          # Verde
-    "Sociales": (255, 165, 0),           # naranja
+    "Sociales": (255, 165, 0),         # Naranja
     "Ingles": (128, 0, 128)            # Morado
 }
 
@@ -31,7 +33,7 @@ except pygame.error:
 info = pygame.display.Info()
 ANCHO = info.current_w
 ALTO = info.current_h
-ventana = pygame.display.set_mode((ANCHO, ALTO))
+ventana = pygame.display.set_mode((ANCHO, ALTO), pygame.RESIZABLE)
 pygame.display.set_caption("CranICFES")
 
 def cargar_img(ruta, tamaño=None):
@@ -46,18 +48,25 @@ def cargar_img(ruta, tamaño=None):
         img.fill((200, 0, 0))
         return img
 
-# === Cargar imágenes ===
+# === Cargar imágenes principales ===
 logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
 tablero = cargar_img("img/tablero1.png", (1366, 720))
 
-# === Botones menú ===
+# === Botones menú (tomados del Código 2, pero puedes reemplazar por los del Código 1 si lo prefieres) ===
 boton_ajustes = cargar_img("img/AJUSTES.png", (200, 50))
 boton_ajustes_hover = cargar_img("img/AJUSTES.png", (220, 55))
 boton_jugar = cargar_img("img/JUGAR.png", (200, 50))
 boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
+
+# === Elementos tomados del Código 1 ===
+url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"  # <-- YouTube
+boton_youtube = cargar_img("img/LOGO_YT.png", (150, 150))
+boton_youtube_hover = cargar_img("img/LOGO_YT.png", (200, 200))
+personaje_interfaz = cargar_img("img/MAGO_MTMC.png", (250, 250))
+personaje_interfaz_hover = cargar_img("img/MAGO_MTMC.png", (300, 300))
 
 # === Botones música ===
 boton_mute = cargar_img("img/mute.png", (200, 50))
@@ -73,6 +82,12 @@ boton_vol_down_hover = cargar_img("img/vol_down.png", (220, 55))
 rect_ajustes = boton_ajustes.get_rect(topleft=(220, 580))
 rect_jugar = boton_jugar.get_rect(topleft=(550, 580))
 rect_creditos = boton_creditos.get_rect(topleft=(880, 580))
+
+# === Nuevos botones (YouTube y Mago) ===
+rect_youtube = boton_youtube.get_rect(topleft=(60, 300))
+rect_youtube_hover = boton_youtube_hover.get_rect(center=rect_youtube.center)
+rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
+rect_mago_hover = personaje_interfaz_hover.get_rect(center=rect_mago.center)
 
 # === Música botones ===
 x_columna = 50
@@ -138,10 +153,13 @@ while corriendo:
         elif evento.type == pygame.VIDEORESIZE:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-            if pantalla_actual in ["ajustes", "creditos", "jugar"] and boton_salir.collidepoint(mouse_pos):
+            # Botón de salir (atrás) en pantallas secundarias
+            if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"] and boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
                 mostrando_retroalimentacion = False
+
+            # Menú principal
             elif pantalla_actual == "menu":
                 if rect_ajustes.collidepoint(mouse_pos):
                     pantalla_actual = "ajustes"
@@ -149,6 +167,12 @@ while corriendo:
                     pantalla_actual = "jugar"
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
+                elif rect_youtube.collidepoint(mouse_pos):
+                    webbrowser.open(url_youtube)  # <-- Funcionalidad de Código 1
+                elif rect_mago.collidepoint(mouse_pos):
+                    pantalla_actual = "mago"  # <-- Nueva pantalla
+
+            # Ajustes: controles de audio
             elif pantalla_actual == "ajustes":
                 if musica_activa and rect_mute.collidepoint(mouse_pos):
                     if 'sonido_fondo' in locals():
@@ -167,7 +191,7 @@ while corriendo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
 
-            # === Jugar: clic en círculo → mostrar pregunta ===
+            # Jugar: clic en círculo → mostrar pregunta
             elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circ in circulos:
                     centro = circ["centro"]
@@ -176,46 +200,56 @@ while corriendo:
                     if distancia <= radio:
                         materia = circ["materia"]
                         pregunta_data = obtener_pregunta_aleatoria(materia)
-                        if pregunta_data:  # Verifica que haya pregunta
+                        if pregunta_data:
                             mostrando_pregunta = True
                             botones_opciones = []
                         break
 
-            # === Responder con clic en opción ===
+            # Responder con clic en opción
             elif mostrando_pregunta:
                 for rect_boton, opcion_idx in botones_opciones:
                     if rect_boton.collidepoint(mouse_pos):
-                        # Validar y convertir el índice correcto
                         try:
                             correcta_raw = pregunta_data["respuesta"]
-                            if isinstance(correcta_raw, str):
-                                correcta_idx = int(correcta_raw)
-                            else:
-                                correcta_idx = correcta_raw
+                            correcta_idx = int(correcta_raw) if isinstance(correcta_raw, str) else correcta_raw
                         except (ValueError, TypeError):
                             correcta_idx = None
 
-                        # Validar respuesta
                         if correcta_idx == opcion_idx:
                             mensaje_retro = "¡Correcto!"
-                            color_retro = (0, 255, 0)  # Verde
-                            equipo1.rect.center = circ["centro"]
+                            color_retro = (0, 255, 0)
+                            equipo1.rect.center = circ["centro"]  # Mueve al jugador
                         else:
                             mensaje_retro = "Incorrecto"
-                            color_retro = (255, 0, 0)  # Rojo
+                            color_retro = (255, 0, 0)
 
-                        # Cambiar estado
                         mostrando_pregunta = False
                         mostrando_retroalimentacion = True
-                        temporizador_retro = pygame.time.get_ticks()  # Guardar tiempo actual
+                        temporizador_retro = pygame.time.get_ticks()
                         break
 
     # === Renderizado ===
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-50, -150))
+
+        # Botones principales
         ventana.blit(boton_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else boton_ajustes, rect_ajustes.topleft)
         ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar, rect_jugar.topleft)
         ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos, rect_creditos.topleft)
+
+        # Botón YouTube
+        if rect_youtube.collidepoint(mouse_pos):
+            ventana.blit(boton_youtube_hover, rect_youtube_hover.topleft)
+        else:
+            ventana.blit(boton_youtube, rect_youtube.topleft)
+
+        # Botón Mago
+        if rect_mago.collidepoint(mouse_pos):
+            ventana.blit(personaje_interfaz_hover, rect_mago_hover.topleft)
+        else:
+            ventana.blit(personaje_interfaz, rect_mago.topleft)
+
+        # Logo
         ventana.blit(logo_juego, (400, 40))
 
     elif pantalla_actual == "ajustes":
@@ -223,10 +257,12 @@ while corriendo:
         titulo = pygame.font.SysFont(None, 60).render("AJUSTES", True, NEGRO)
         ventana.blit(titulo, (ventana.get_width() // 2 - titulo.get_width() // 2, 30))
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+
         if musica_activa:
             ventana.blit(boton_mute_hover if rect_mute.collidepoint(mouse_pos) else boton_mute, rect_mute.topleft)
         else:
             ventana.blit(boton_unmute_hover if rect_unmute.collidepoint(mouse_pos) else boton_unmute, rect_unmute.topleft)
+
         ventana.blit(boton_vol_up_hover if rect_vol_up.collidepoint(mouse_pos) else boton_vol_up, rect_vol_up.topleft)
         ventana.blit(boton_vol_down_hover if rect_vol_down.collidepoint(mouse_pos) else boton_vol_down, rect_vol_down.topleft)
 
@@ -247,43 +283,34 @@ while corriendo:
         grupo_equipo_1.draw(ventana)
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
 
-        # === Mostrar pregunta ===
+        # Mostrar pregunta
         if mostrando_pregunta and pregunta_data:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
             overlay.fill(NEGRO)
             ventana.blit(overlay, (0, 0))
 
-            # Título de materia
             titulo_materia = fuente_pregunta.render(f"{pregunta_data['materia']}", True, materias[pregunta_data['materia']])
             ventana.blit(titulo_materia, (ANCHO // 2 - titulo_materia.get_width() // 2, 80))
 
-            # Pregunta
             render_pregunta = fuente_pregunta.render(pregunta_data["pregunta"], True, BLANCO)
             ventana.blit(render_pregunta, render_pregunta.get_rect(center=(ANCHO // 2, 150)))
 
-            # Opciones clickeables
             y_opcion = 220
             botones_opciones.clear()
             for i, opcion in enumerate(pregunta_data["opciones"]):
                 texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
                 rect_boton = texto.get_rect(center=(ANCHO // 2, y_opcion))
-
-                # Hover visual
-                if rect_boton.collidepoint(mouse_pos):
-                    pygame.draw.rect(ventana, (100, 100, 100), rect_boton.inflate(30, 15), border_radius=10)
-                else:
-                    pygame.draw.rect(ventana, (50, 50, 50), rect_boton.inflate(30, 15), border_radius=10)
-
+                color_fondo = (100, 100, 100) if rect_boton.collidepoint(mouse_pos) else (50, 50, 50)
+                pygame.draw.rect(ventana, color_fondo, rect_boton.inflate(30, 15), border_radius=10)
                 ventana.blit(texto, rect_boton)
                 botones_opciones.append((rect_boton, i))
                 y_opcion += 60
 
-            # Instrucción
             mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
             ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 30))
 
-        # === Mostrar retroalimentación ===
+        # Mostrar retroalimentación
         if mostrando_retroalimentacion:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
@@ -304,10 +331,16 @@ while corriendo:
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
 
+    elif pantalla_actual == "mago":  # <-- Nueva pantalla desde Código 1
+        ventana.fill((255, 255, 200))
+        font = pygame.font.SysFont(None, 60)
+        texto = font.render("¡Hola, soy el Mago MTMC!", True, NEGRO)
+        ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
+        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+
     # === Cerrar retroalimentación después de 2 segundos ===
-    if mostrando_retroalimentacion:
-        if pygame.time.get_ticks() - temporizador_retro > 2000:
-            mostrando_retroalimentacion = False
+    if mostrando_retroalimentacion and pygame.time.get_ticks() - temporizador_retro > 2000:
+        mostrando_retroalimentacion = False
 
     pygame.display.flip()
 
