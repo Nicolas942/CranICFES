@@ -102,9 +102,11 @@ rect_vol_down = boton_vol_down.get_rect(topleft=(x_columna, y_columna + espacio 
 circulos = [
     {"centro": (510, 90), "radio": 50, "materia": "Matematicas"},
     {"centro": (385, 175), "radio": 40, "materia": "Sociales"},
-    {"centro": (325, 265), "radio": 40, "materia": "Ingles"},
-    {"centro": (650, 200), "radio": 40, "materia": "Naturales"},
-    {"centro": (720, 300), "radio": 40, "materia": "Español"},
+    {"centro": (460, 565), "radio": 40, "materia": "Ingles"},
+    {"centro": (365, 495), "radio": 40, "materia": "Naturales"},
+    {"centro": (325, 265), "radio": 40, "materia": "Español"},
+    {"centro": (785, 610), "radio": 40, "materia": "Sociales"},
+    {"centro": (890, 560), "radio": 40, "materia": "Matematicas"},
 ]
 
 # === Sprite del equipo ===
