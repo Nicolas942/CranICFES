@@ -89,15 +89,12 @@ rect_youtube = boton_youtube.get_rect(topleft=(60, 300))
 rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
 
 # === Música botones ===
-x_columna = 50
-y_columna = 200
-espacio = 70
-rect_mute = boton_mute.get_rect(topleft=(x_columna, y_columna))
-rect_unmute = boton_unmute.get_rect(topleft=(x_columna, y_columna))
-rect_vol_up = boton_vol_up.get_rect(topleft=(x_columna, y_columna + espacio))
-rect_vol_down = boton_vol_down.get_rect(topleft=(x_columna, y_columna + espacio * 2))
+rect_mute = boton_mute.get_rect(topleft=(50, 200))
+rect_unmute = boton_unmute.get_rect(topleft=(50, 200))
+rect_vol_up = boton_vol_up.get_rect(topleft=(50,250))
+rect_vol_down = boton_vol_down.get_rect(topleft=(50,300))
 
-# === Círculos por materia (posición, radio, materia) — SIN CAMBIOS, TAL COMO LOS DEFINISTE ===
+# === Círculos por materia (posición, radio, materia) ===
 circulos = [
     {"centro": (510, 90), "radio": 50, "materia": "Matematicas"},
     {"centro": (385, 175), "radio": 40, "materia": "Sociales"},
@@ -108,7 +105,7 @@ circulos = [
     {"centro": (890, 560), "radio": 40, "materia": "Matematicas"},
 ]
 
-# === Orden del recorrido: antihorario (solo define el camino lógico) ===
+# === Orden del recorrido ===
 orden_antihorario = [
     "Matematicas",
     "Sociales",
@@ -123,7 +120,7 @@ class Equipo1(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.Surface((15, 15))
-        self.image.fill((255, 0, 0))  # Rojo brillante
+        self.image.fill((255, 0, 0))  
         self.rect = self.image.get_rect(topleft=(x, y))
 
 equipo1 = Equipo1(510, 90)
@@ -136,8 +133,8 @@ mostrando_retroalimentacion = False
 mensaje_retro = ""
 color_retro = BLANCO
 pregunta_data = None
-botones_opciones = []  # Lista de tuplas: (rect, índice)
-temporizador_retro = 0  # Tiempo en ms cuando se muestra retro
+botones_opciones = []  
+temporizador_retro = 0  
 
 # === Fuentes ===
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
@@ -164,7 +161,7 @@ while corriendo:
         elif evento.type == pygame.VIDEORESIZE:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-            # Botón salir
+
             if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"] and boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
@@ -202,7 +199,7 @@ while corriendo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
 
-            # Jugar: clic en círculo → mostrar pregunta
+            # Jugar
             elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circ in circulos:
                     centro = circ["centro"]
@@ -232,15 +229,12 @@ while corriendo:
                         if respuesta_idx == opcion_idx:
                             mensaje_retro = "¡Correcto!"
                             color_retro = (0, 255, 0)
-
-                            # ✅ Avanzar al siguiente en orden antihorario
                             try:
                                 idx_actual = orden_antihorario.index(pregunta_data["materia"])
                             except ValueError:
                                 idx_actual = 0
                             siguiente_materia = orden_antihorario[(idx_actual + 1) % len(orden_antihorario)]
-                            
-                            # Busca el primer círculo con esa materia
+
                             for c in circulos:
                                 if c["materia"] == siguiente_materia:
                                     equipo1.rect.center = c["centro"]
