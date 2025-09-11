@@ -1,6 +1,6 @@
 import pygame
 import sys
-import webbrowser  
+import webbrowser
 from base_de_datos import obtener_pregunta_aleatoria
 
 pygame.init()
@@ -8,7 +8,7 @@ pygame.init()
 # === Colores ===
 NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
-CELESTE = (135, 206, 250)  
+CELESTE = (135, 206, 250)
 
 # === Mapa de materias a colores ===
 materias = {
@@ -21,6 +21,8 @@ materias = {
 
 # === Audio ===
 pygame.mixer.init()
+sonido_fondo = None
+musica_activa = False
 try:
     sonido_fondo = pygame.mixer.Sound("Sonidos/Fondo.mp3")
     pygame.mixer.Sound.play(sonido_fondo, loops=-1)
@@ -53,16 +55,16 @@ logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
 tablero = cargar_img("img/tablero1.png", (1366, 720))
 
-
 boton_ajustes = cargar_img("img/AJUSTES.png", (200, 50))
 boton_ajustes_hover = cargar_img("img/AJUSTES.png", (220, 55))
 boton_jugar = cargar_img("img/JUGAR.png", (200, 50))
 boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
+boton_salir = cargar_img("img/boton_salir.png", (120, 100))  
+boton_salir_hover = cargar_img("img/boton_salir.png", (140, 120))
 
-
-url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"  
+url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"
 boton_youtube = cargar_img("img/LOGO_YT.png", (150, 150))
 boton_youtube_hover = cargar_img("img/LOGO_YT.png", (200, 200))
 personaje_interfaz = cargar_img("img/MAGO_MTMC.png", (250, 250))
@@ -125,19 +127,26 @@ mostrando_retroalimentacion = False
 mensaje_retro = ""
 color_retro = BLANCO
 pregunta_data = None
-botones_opciones = []  # Lista de tuplas: (rect, índice)
-temporizador_retro = 0  # Tiempo en ms cuando se muestra retro
+botones_opciones = []
+temporizador_retro = 0
 
 # === Fuentes ===
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
 fuente_opciones = pygame.font.SysFont("Arial", 30)
 fuente_ayuda = pygame.font.SysFont("Arial", 24)
 
+
+rect_boton_salir = None  
+
 # === Bucle principal ===
 corriendo = True
 while corriendo:
     mouse_pos = pygame.mouse.get_pos()
-    boton_salir = pygame.Rect(ventana.get_width() - 70, 20, 40, 40)
+
+    # Calcular rect_boton_salir solo si estamos en una pantalla secundaria
+    rect_boton_salir = None
+    if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"]:
+        rect_boton_salir = pygame.Rect(ventana.get_width() - 150, 10, 120, 100)
 
     # === Eventos ===
     for evento in pygame.event.get():
@@ -154,7 +163,7 @@ while corriendo:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             # Botón de salir (atrás) en pantallas secundarias
-            if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"] and boton_salir.collidepoint(mouse_pos):
+            if rect_boton_salir and rect_boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
                 mostrando_retroalimentacion = False
@@ -168,26 +177,26 @@ while corriendo:
                 elif rect_creditos.collidepoint(mouse_pos):
                     pantalla_actual = "creditos"
                 elif rect_youtube.collidepoint(mouse_pos):
-                    webbrowser.open(url_youtube)  
+                    webbrowser.open(url_youtube)
                 elif rect_mago.collidepoint(mouse_pos):
-                    pantalla_actual = "mago"  
+                    pantalla_actual = "mago"
 
             # Ajustes: controles de audio
             elif pantalla_actual == "ajustes":
                 if musica_activa and rect_mute.collidepoint(mouse_pos):
-                    if 'sonido_fondo' in locals():
-                        pygame.mixer.Sound.stop(sonido_fondo)
+                    if sonido_fondo:
+                        sonido_fondo.stop()
                     musica_activa = False
-                elif (not musica_activa) and rect_unmute.collidepoint(mouse_pos):
-                    if 'sonido_fondo' in locals():
-                        pygame.mixer.Sound.play(sonido_fondo, loops=-1)
+                elif not musica_activa and rect_unmute.collidepoint(mouse_pos):
+                    if sonido_fondo:
+                        sonido_fondo.play(loops=-1)
                     musica_activa = True
                 elif rect_vol_up.collidepoint(mouse_pos):
-                    if 'sonido_fondo' in locals():
+                    if sonido_fondo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(min(1.0, vol + 0.1))
                 elif rect_vol_down.collidepoint(mouse_pos):
-                    if 'sonido_fondo' in locals():
+                    if sonido_fondo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
 
@@ -202,8 +211,14 @@ while corriendo:
                         pregunta_data = obtener_pregunta_aleatoria(materia)
                         if pregunta_data:
                             mostrando_pregunta = True
-                            botones_opciones = []
+                            botones_opciones.clear()
                         break
+
+                # Botón "Volver" en pantalla de pregunta
+                if mostrando_pregunta:
+                    volver_btn = pygame.Rect(20, 20, 80, 40)
+                    if volver_btn.collidepoint(mouse_pos):
+                        mostrando_pregunta = False
 
             # Responder con clic en opción
             elif mostrando_pregunta:
@@ -256,7 +271,10 @@ while corriendo:
         ventana.blit(fondo, (-50, -150))
         titulo = pygame.font.SysFont(None, 60).render("AJUSTES", True, NEGRO)
         ventana.blit(titulo, (ventana.get_width() // 2 - titulo.get_width() // 2, 30))
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+
+        # Botón de salir
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
         if musica_activa:
             ventana.blit(boton_mute_hover if rect_mute.collidepoint(mouse_pos) else boton_mute, rect_mute.topleft)
@@ -281,7 +299,11 @@ while corriendo:
 
         grupo_equipo_1.update()
         grupo_equipo_1.draw(ventana)
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+
+        # Botón de salir (esquina superior derecha)
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+
 
         # Mostrar pregunta
         if mostrando_pregunta and pregunta_data:
@@ -310,6 +332,12 @@ while corriendo:
             mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
             ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 30))
 
+            # Botón "Volver" en pantalla de pregunta
+            volver_btn = pygame.Rect(20, 20, 80, 40)
+            pygame.draw.rect(ventana, (100, 100, 100), volver_btn, border_radius=10)
+            texto_volver = fuente_ayuda.render("Volver", True, BLANCO)
+            ventana.blit(texto_volver, (volver_btn.x + 10, volver_btn.y + 5))
+
         # Mostrar retroalimentación
         if mostrando_retroalimentacion:
             overlay = pygame.Surface((ANCHO, ALTO))
@@ -329,14 +357,18 @@ while corriendo:
         ventana.blit(fondo, (-50, -150))
         texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
-    elif pantalla_actual == "mago":  
+
+    elif pantalla_actual == "mago":
         ventana.fill((255, 255, 200))
         font = pygame.font.SysFont(None, 60)
         texto = font.render("¡Hola, soy el Mago MTMC!", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+
 
     # === Cerrar retroalimentación después de 2 segundos ===
     if mostrando_retroalimentacion and pygame.time.get_ticks() - temporizador_retro > 2000:
