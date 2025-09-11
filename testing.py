@@ -16,7 +16,8 @@ materias = {
     "Español": (255, 255, 0),          # Amarillo
     "Naturales": (0, 128, 0),          # Verde
     "Sociales": (255, 165, 0),         # Naranja
-    "Ingles": (128, 0, 128)            # Morado
+    "Ingles": (128, 0, 128),           # Morado
+    "Lectura Critica": (0, 0, 255)     # Azul
 }
 
 # === Audio ===
@@ -53,7 +54,7 @@ logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
 tablero = cargar_img("img/tablero1.png", (1366, 720))
 
-
+# === Botones menú ===
 boton_ajustes = cargar_img("img/AJUSTES.png", (200, 50))
 boton_ajustes_hover = cargar_img("img/AJUSTES.png", (220, 55))
 boton_jugar = cargar_img("img/JUGAR.png", (200, 50))
@@ -61,7 +62,7 @@ boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
 
-
+# === Botones adicionales ===
 url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"  
 boton_youtube = cargar_img("img/LOGO_YT.png", (150, 150))
 boton_youtube_hover = cargar_img("img/LOGO_YT.png", (200, 200))
@@ -83,11 +84,9 @@ rect_ajustes = boton_ajustes.get_rect(topleft=(220, 580))
 rect_jugar = boton_jugar.get_rect(topleft=(550, 580))
 rect_creditos = boton_creditos.get_rect(topleft=(880, 580))
 
-# === Nuevos botones (YouTube y Mago) ===
+# === Botones adicionales ===
 rect_youtube = boton_youtube.get_rect(topleft=(60, 300))
-rect_youtube_hover = boton_youtube_hover.get_rect(center=rect_youtube.center)
 rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
-rect_mago_hover = personaje_interfaz_hover.get_rect(center=rect_mago.center)
 
 # === Música botones ===
 x_columna = 50
@@ -98,7 +97,7 @@ rect_unmute = boton_unmute.get_rect(topleft=(x_columna, y_columna))
 rect_vol_up = boton_vol_up.get_rect(topleft=(x_columna, y_columna + espacio))
 rect_vol_down = boton_vol_down.get_rect(topleft=(x_columna, y_columna + espacio * 2))
 
-# === Círculos por materia (posición, radio, materia) ===
+# === Círculos por materia (posición, radio, materia) — SIN CAMBIOS, TAL COMO LOS DEFINISTE ===
 circulos = [
     {"centro": (510, 90), "radio": 50, "materia": "Matematicas"},
     {"centro": (385, 175), "radio": 40, "materia": "Sociales"},
@@ -107,6 +106,16 @@ circulos = [
     {"centro": (325, 265), "radio": 40, "materia": "Español"},
     {"centro": (785, 610), "radio": 40, "materia": "Sociales"},
     {"centro": (890, 560), "radio": 40, "materia": "Matematicas"},
+]
+
+# === Orden del recorrido: antihorario (solo define el camino lógico) ===
+orden_antihorario = [
+    "Matematicas",
+    "Sociales",
+    "Ingles",
+    "Naturales",
+    "Español",
+    "Lectura Critica"
 ]
 
 # === Sprite del equipo ===
@@ -155,7 +164,7 @@ while corriendo:
         elif evento.type == pygame.VIDEORESIZE:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-            # Botón de salir (atrás) en pantallas secundarias
+            # Botón salir
             if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"] and boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
@@ -212,15 +221,30 @@ while corriendo:
                 for rect_boton, opcion_idx in botones_opciones:
                     if rect_boton.collidepoint(mouse_pos):
                         try:
-                            correcta_raw = pregunta_data["respuesta"]
-                            correcta_idx = int(correcta_raw) if isinstance(correcta_raw, str) else correcta_raw
-                        except (ValueError, TypeError):
-                            correcta_idx = None
+                            respuesta_raw = pregunta_data["respuesta"]
+                            if isinstance(respuesta_raw, str):
+                                respuesta_idx = int(respuesta_raw)
+                            else:
+                                respuesta_idx = respuesta_raw
+                        except (ValueError, TypeError, KeyError):
+                            respuesta_idx = None
 
-                        if correcta_idx == opcion_idx:
+                        if respuesta_idx == opcion_idx:
                             mensaje_retro = "¡Correcto!"
                             color_retro = (0, 255, 0)
-                            equipo1.rect.center = circ["centro"]  # Mueve al jugador
+
+                            # ✅ Avanzar al siguiente en orden antihorario
+                            try:
+                                idx_actual = orden_antihorario.index(pregunta_data["materia"])
+                            except ValueError:
+                                idx_actual = 0
+                            siguiente_materia = orden_antihorario[(idx_actual + 1) % len(orden_antihorario)]
+                            
+                            # Busca el primer círculo con esa materia
+                            for c in circulos:
+                                if c["materia"] == siguiente_materia:
+                                    equipo1.rect.center = c["centro"]
+                                    break
                         else:
                             mensaje_retro = "Incorrecto"
                             color_retro = (255, 0, 0)
@@ -239,15 +263,15 @@ while corriendo:
         ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar, rect_jugar.topleft)
         ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos, rect_creditos.topleft)
 
-        # Botón YouTube
+        # Botón YouTube (con hover)
         if rect_youtube.collidepoint(mouse_pos):
-            ventana.blit(boton_youtube_hover, rect_youtube_hover.topleft)
+            ventana.blit(boton_youtube_hover, rect_youtube.topleft)
         else:
             ventana.blit(boton_youtube, rect_youtube.topleft)
 
-        # Botón Mago
+        # Botón Mago (con hover)
         if rect_mago.collidepoint(mouse_pos):
-            ventana.blit(personaje_interfaz_hover, rect_mago_hover.topleft)
+            ventana.blit(personaje_interfaz_hover, rect_mago.topleft)
         else:
             ventana.blit(personaje_interfaz, rect_mago.topleft)
 
@@ -264,7 +288,6 @@ while corriendo:
             ventana.blit(boton_mute_hover if rect_mute.collidepoint(mouse_pos) else boton_mute, rect_mute.topleft)
         else:
             ventana.blit(boton_unmute_hover if rect_unmute.collidepoint(mouse_pos) else boton_unmute, rect_unmute.topleft)
-
         ventana.blit(boton_vol_up_hover if rect_vol_up.collidepoint(mouse_pos) else boton_vol_up, rect_vol_up.topleft)
         ventana.blit(boton_vol_down_hover if rect_vol_down.collidepoint(mouse_pos) else boton_vol_down, rect_vol_down.topleft)
 
@@ -276,7 +299,7 @@ while corriendo:
             centro = circ["centro"]
             radio = circ["radio"]
             materia = circ["materia"]
-            color = materias[materia]
+            color = materias.get(materia, (100, 100, 100))
             pygame.draw.circle(ventana, color, centro, radio)
             texto_materia = fuente_ayuda.render(materia, True, NEGRO)
             ventana.blit(texto_materia, (centro[0] - texto_materia.get_width() // 2, centro[1] - 8))
@@ -334,10 +357,12 @@ while corriendo:
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
 
     elif pantalla_actual == "mago":  
-        ventana.fill((255, 255, 200))
+        ventana.fill(CELESTE)
         font = pygame.font.SysFont(None, 60)
-        texto = font.render("¡Hola, soy el Mago MTMC!", True, NEGRO)
-        ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
+        texto1 = font.render("¡Hola, soy el Mago MTMC!", True, NEGRO)
+        texto2 = fuente_ayuda.render("Estoy aquí para ayudarte a aprender.", True, NEGRO)
+        ventana.blit(texto1, (ANCHO // 2 - texto1.get_width() // 2, ALTO // 2 - 60))
+        ventana.blit(texto2, (ANCHO // 2 - texto2.get_width() // 2, ALTO // 2))
         pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
 
     # === Cerrar retroalimentación después de 2 segundos ===
