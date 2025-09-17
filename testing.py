@@ -61,6 +61,8 @@ boton_jugar = cargar_img("img/JUGAR.png", (200, 50))
 boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
+boton_salir = cargar_img("img/boton_salir.png", (120, 100))  
+boton_salir_hover = cargar_img("img/boton_salir.png", (140, 120))
 
 # === Botones adicionales ===
 url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"  
@@ -141,11 +143,15 @@ fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
 fuente_opciones = pygame.font.SysFont("Arial", 30)
 fuente_ayuda = pygame.font.SysFont("Arial", 24)
 
+rect_boton_salir = None  
+
 # === Bucle principal ===
 corriendo = True
 while corriendo:
     mouse_pos = pygame.mouse.get_pos()
-    boton_salir = pygame.Rect(ventana.get_width() - 70, 20, 40, 40)
+    rect_boton_salir = None
+    if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"]:
+        rect_boton_salir = pygame.Rect(ventana.get_width() - 150, 10, 120, 100)
 
     # === Eventos ===
     for evento in pygame.event.get():
@@ -161,8 +167,8 @@ while corriendo:
         elif evento.type == pygame.VIDEORESIZE:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-
-            if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"] and boton_salir.collidepoint(mouse_pos):
+            # Botón de salir (atrás) en pantallas secundarias
+            if rect_boton_salir and rect_boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
                 mostrando_retroalimentacion = False
@@ -276,7 +282,9 @@ while corriendo:
         ventana.blit(fondo, (-50, -150))
         titulo = pygame.font.SysFont(None, 60).render("AJUSTES", True, NEGRO)
         ventana.blit(titulo, (ventana.get_width() // 2 - titulo.get_width() // 2, 30))
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
         if musica_activa:
             ventana.blit(boton_mute_hover if rect_mute.collidepoint(mouse_pos) else boton_mute, rect_mute.topleft)
@@ -300,7 +308,10 @@ while corriendo:
 
         grupo_equipo_1.update()
         grupo_equipo_1.draw(ventana)
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+        
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+
 
         # Mostrar pregunta
         if mostrando_pregunta and pregunta_data:
@@ -348,7 +359,10 @@ while corriendo:
         ventana.blit(fondo, (-50, -150))
         texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+        
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+
 
     elif pantalla_actual == "mago":  
         ventana.fill(CELESTE)
@@ -357,7 +371,10 @@ while corriendo:
         texto2 = fuente_ayuda.render("Estoy aquí para ayudarte a aprender.", True, NEGRO)
         ventana.blit(texto1, (ANCHO // 2 - texto1.get_width() // 2, ALTO // 2 - 60))
         ventana.blit(texto2, (ANCHO // 2 - texto2.get_width() // 2, ALTO // 2))
-        pygame.draw.rect(ventana, (255, 0, 0), boton_salir)
+        
+        if rect_boton_salir:
+            ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+
 
     # === Cerrar retroalimentación después de 2 segundos ===
     if mostrando_retroalimentacion and pygame.time.get_ticks() - temporizador_retro > 2000:
