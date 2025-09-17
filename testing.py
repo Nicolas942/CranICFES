@@ -17,7 +17,15 @@ materias = {
     "Naturales": (0, 128, 0),          # Verde
     "Sociales": (255, 165, 0),         # Naranja
     "Ingles": (128, 0, 128),           # Morado
-    "Lectura Critica": (0, 0, 255)     # Azul
+    "Lectura Critica": (0, 0, 255),    # Azul
+    "Matematicas2": (255, 0, 0),       # Mismo color que Matemáticas
+    "Sociales2": (255, 165, 0)         # Mismo color que Sociales
+}
+
+# === Alias de materias: para reutilizar preguntas ===
+alias_materias = {
+    "Matematicas2": "Matematicas",
+    "Sociales2": "Sociales"
 }
 
 # === Audio ===
@@ -61,7 +69,7 @@ boton_jugar = cargar_img("img/JUGAR.png", (200, 50))
 boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
-boton_salir = cargar_img("img/boton_salir.png", (120, 100))  
+boton_salir = cargar_img("img/boton_salir.png", (120, 100))
 boton_salir_hover = cargar_img("img/boton_salir.png", (140, 120))
 
 # === Botones adicionales ===
@@ -93,8 +101,8 @@ rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
 # === Música botones ===
 rect_mute = boton_mute.get_rect(topleft=(50, 200))
 rect_unmute = boton_unmute.get_rect(topleft=(50, 200))
-rect_vol_up = boton_vol_up.get_rect(topleft=(50,250))
-rect_vol_down = boton_vol_down.get_rect(topleft=(50,300))
+rect_vol_up = boton_vol_up.get_rect(topleft=(50, 250))
+rect_vol_down = boton_vol_down.get_rect(topleft=(50, 300))
 
 # === Círculos por materia (posición, radio, materia) ===
 circulos = [
@@ -103,18 +111,19 @@ circulos = [
     {"centro": (460, 565), "radio": 40, "materia": "Ingles"},
     {"centro": (365, 495), "radio": 40, "materia": "Naturales"},
     {"centro": (325, 265), "radio": 40, "materia": "Español"},
-    {"centro": (785, 610), "radio": 40, "materia": "Sociales"},
-    {"centro": (890, 560), "radio": 40, "materia": "Matematicas"},
+    {"centro": (785, 610), "radio": 40, "materia": "Sociales2"},
+    {"centro": (890, 560), "radio": 40, "materia": "Matematicas2"},
 ]
 
 # === Orden del recorrido ===
 orden_antihorario = [
     "Matematicas",
     "Sociales",
-    "Ingles",
-    "Naturales",
     "Español",
-    "Lectura Critica"
+    "Naturales",
+    "Ingles",
+    "Sociales2",
+    "Matematicas2",
 ]
 
 # === Sprite del equipo ===
@@ -142,8 +151,6 @@ temporizador_retro = 0
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
 fuente_opciones = pygame.font.SysFont("Arial", 30)
 fuente_ayuda = pygame.font.SysFont("Arial", 24)
-
-rect_boton_salir = None  
 
 # === Bucle principal ===
 corriendo = True
@@ -205,16 +212,18 @@ while corriendo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
 
-            # Jugar
+            # Jugar: clic en círculo → mostrar pregunta
             elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circ in circulos:
                     centro = circ["centro"]
                     radio = circ["radio"]
                     distancia = ((mouse_pos[0] - centro[0])**2 + (mouse_pos[1] - centro[1])**2)**0.5
                     if distancia <= radio:
-                        materia = circ["materia"]
-                        pregunta_data = obtener_pregunta_aleatoria(materia)
+                        materia_original = circ["materia"]
+                        materia_real = alias_materias.get(materia_original, materia_original)
+                        pregunta_data = obtener_pregunta_aleatoria(materia_real)
                         if pregunta_data:
+                            pregunta_data["materia"] = materia_original  # Mostrar nombre original
                             mostrando_pregunta = True
                             botones_opciones = []
                         break
@@ -269,7 +278,7 @@ while corriendo:
         else:
             ventana.blit(boton_youtube, rect_youtube.topleft)
 
-        # Botón Mago (
+        # Botón Mago 
         if rect_mago.collidepoint(mouse_pos):
             ventana.blit(personaje_interfaz_hover, rect_mago.topleft)
         else:
@@ -311,7 +320,6 @@ while corriendo:
         
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
-
 
         # Mostrar pregunta
         if mostrando_pregunta and pregunta_data:
@@ -363,7 +371,6 @@ while corriendo:
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
-
     elif pantalla_actual == "mago":  
         ventana.fill(CELESTE)
         font = pygame.font.SysFont(None, 60)
@@ -374,7 +381,6 @@ while corriendo:
         
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
-
 
     # === Cerrar retroalimentación después de 2 segundos ===
     if mostrando_retroalimentacion and pygame.time.get_ticks() - temporizador_retro > 2000:
