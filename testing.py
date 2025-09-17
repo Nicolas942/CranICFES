@@ -71,14 +71,14 @@ personaje_interfaz = cargar_img("img/MAGO_MTMC.png", (250, 250))
 personaje_interfaz_hover = cargar_img("img/MAGO_MTMC.png", (300, 300))
 
 # === Botones música ===
-boton_mute = cargar_img("img/mute.png", (200, 50))
-boton_mute_hover = cargar_img("img/mute.png", (220, 55))
-boton_unmute = cargar_img("img/unmute.png", (200, 50))
-boton_unmute_hover = cargar_img("img/unmute.png", (220, 55))
-boton_vol_up = cargar_img("img/vol_up.png", (200, 50))
-boton_vol_up_hover = cargar_img("img/vol_up.png", (220, 55))
-boton_vol_down = cargar_img("img/vol_down.png", (200, 50))
-boton_vol_down_hover = cargar_img("img/vol_down.png", (220, 55))
+boton_mute = cargar_img("img/mute.png", (100, 100))
+boton_mute_hover = cargar_img("img/mute.png", (120, 120))
+boton_unmute = cargar_img("img/unmute.png", (100, 100))
+boton_unmute_hover = cargar_img("img/unmute.png", (120, 120))
+boton_vol_up = cargar_img("img/vol_up.png", (100, 100))
+boton_vol_up_hover = cargar_img("img/vol_up.png", (120, 120))
+boton_vol_down = cargar_img("img/vol_down.png", (100, 100))
+boton_vol_down_hover = cargar_img("img/vol_down.png", (120, 120))
 
 # === Posiciones menú ===
 rect_ajustes = boton_ajustes.get_rect(topleft=(220, 580))
@@ -92,9 +92,9 @@ rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
 rect_mago_hover = personaje_interfaz_hover.get_rect(center=rect_mago.center)
 
 # === Música botones ===
-x_columna = 50
-y_columna = 200
-espacio = 70
+x_columna = 20
+y_columna = 100
+espacio = 120
 rect_mute = boton_mute.get_rect(topleft=(x_columna, y_columna))
 rect_unmute = boton_unmute.get_rect(topleft=(x_columna, y_columna))
 rect_vol_up = boton_vol_up.get_rect(topleft=(x_columna, y_columna + espacio))
@@ -269,7 +269,7 @@ while corriendo:
 
     elif pantalla_actual == "ajustes":
         ventana.blit(fondo, (-50, -150))
-        titulo = pygame.font.SysFont(None, 60).render("AJUSTES", True, NEGRO)
+        titulo = pygame.font.SysFont(None, 60, bold= True, italic= True).render("AJUSTES", True, NEGRO)
         ventana.blit(titulo, (ventana.get_width() // 2 - titulo.get_width() // 2, 30))
 
         # Botón de salir
@@ -355,7 +355,7 @@ while corriendo:
 
     elif pantalla_actual == "creditos":
         ventana.blit(fondo, (-50, -150))
-        texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
+        texto = pygame.font.SysFont(None, 60, bold= True, italic= True).render("Créditos", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
@@ -363,7 +363,7 @@ while corriendo:
 
     elif pantalla_actual == "mago":
         ventana.fill((255, 255, 200))
-        font = pygame.font.SysFont(None, 60)
+        font = pygame.font.SysFont(None, 60, bold= True, italic= True)
         texto = font.render("¡Hola, soy el Mago MTMC!", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         if rect_boton_salir:
