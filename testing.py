@@ -257,13 +257,13 @@ while corriendo:
         ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar, rect_jugar.topleft)
         ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos, rect_creditos.topleft)
 
-        # Botón YouTube (con hover)
+        # Botón YouTube 
         if rect_youtube.collidepoint(mouse_pos):
             ventana.blit(boton_youtube_hover, rect_youtube.topleft)
         else:
             ventana.blit(boton_youtube, rect_youtube.topleft)
 
-        # Botón Mago (con hover)
+        # Botón Mago (
         if rect_mago.collidepoint(mouse_pos):
             ventana.blit(personaje_interfaz_hover, rect_mago.topleft)
         else:
