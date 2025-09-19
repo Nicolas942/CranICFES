@@ -9,23 +9,45 @@ pygame.init()
 NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
 CELESTE = (135, 206, 250)  
+ROJO_MAT = (255, 0, 0)
+AMARILLO_ES = (255, 255, 0)
+VERDE_NAT = (0, 128, 0)
+NARANJA_SOC = (255, 165, 0)
+MORADO_IN = (128, 0, 128)
 
 # === Mapa de materias a colores ===
 materias = {
-    "Matematicas": (255, 0, 0),        # Rojo
-    "Español": (255, 255, 0),          # Amarillo
-    "Naturales": (0, 128, 0),          # Verde
-    "Sociales": (255, 165, 0),         # Naranja
-    "Ingles": (128, 0, 128),           # Morado
-    "Lectura Critica": (0, 0, 255),    # Azul
-    "Matematicas2": (255, 0, 0),       # Mismo color que Matemáticas
-    "Sociales2": (255, 165, 0)         # Mismo color que Sociales
+    "Matematicas": (ROJO_MAT),         # Rojo
+    "Español": (AMARILLO_ES),          # Amarillo
+    "Naturales": (VERDE_NAT),          # Verde
+    "Sociales": (NARANJA_SOC),         # Naranja
+    "Ingles": (MORADO_IN),             # Morado
+    "Matematicas2": (ROJO_MAT),        # Mismo color que Matemáticas
+    "Sociales2": (NARANJA_SOC),        # Mismo color que Sociales
+    "Español2" : (AMARILLO_ES),
+    "Naturales2" : (VERDE_NAT),
+    "Ingles2" : ( MORADO_IN),
+    "Sociales3" : (NARANJA_SOC),
+    "Matematicas3" : (ROJO_MAT),
+    "Español3" : (AMARILLO_ES),
+    "Naturales3": (VERDE_NAT),
+    "Ingles3" : (MORADO_IN,),
+    "Sociales4" : (NARANJA_SOC)
 }
 
 # === Alias de materias: para reutilizar preguntas ===
 alias_materias = {
     "Matematicas2": "Matematicas",
-    "Sociales2": "Sociales"
+    "Sociales2": "Sociales",
+    "Español2" : "Español",
+    "Naturales2" : "Naturales",
+    "Ingles2" : "Ingles",
+    "Sociales3" : "Sociales",
+    "Matematicas3" : "Matematicas",
+    "Español3" : "Español",
+    "Naturales3" : "Naturales",
+    "Ingles3" : "Ingles",
+    "Sociales4" : "Sociales"
 }
 
 # === Audio ===
@@ -80,14 +102,14 @@ personaje_interfaz = cargar_img("img/MAGO_MTMC.png", (250, 250))
 personaje_interfaz_hover = cargar_img("img/MAGO_MTMC.png", (300, 300))
 
 # === Botones música ===
-boton_mute = cargar_img("img/mute.png", (200, 50))
-boton_mute_hover = cargar_img("img/mute.png", (220, 55))
-boton_unmute = cargar_img("img/unmute.png", (200, 50))
-boton_unmute_hover = cargar_img("img/unmute.png", (220, 55))
-boton_vol_up = cargar_img("img/vol_up.png", (200, 50))
-boton_vol_up_hover = cargar_img("img/vol_up.png", (220, 55))
-boton_vol_down = cargar_img("img/vol_down.png", (200, 50))
-boton_vol_down_hover = cargar_img("img/vol_down.png", (220, 55))
+boton_mute = cargar_img("img/mute.png", (100, 100))
+boton_mute_hover = cargar_img("img/mute.png", (120, 120))
+boton_unmute = cargar_img("img/unmute.png", (100, 100))
+boton_unmute_hover = cargar_img("img/unmute.png", (120, 120))
+boton_vol_up = cargar_img("img/vol_up.png", (100, 100))
+boton_vol_up_hover = cargar_img("img/vol_up.png", (120, 120))
+boton_vol_down = cargar_img("img/vol_down.png", (100, 100))
+boton_vol_down_hover = cargar_img("img/vol_down.png", (120, 120))
 
 # === Posiciones menú ===
 rect_ajustes = boton_ajustes.get_rect(topleft=(220, 580))
@@ -99,10 +121,13 @@ rect_youtube = boton_youtube.get_rect(topleft=(60, 300))
 rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
 
 # === Música botones ===
-rect_mute = boton_mute.get_rect(topleft=(50, 200))
-rect_unmute = boton_unmute.get_rect(topleft=(50, 200))
-rect_vol_up = boton_vol_up.get_rect(topleft=(50, 250))
-rect_vol_down = boton_vol_down.get_rect(topleft=(50, 300))
+x_columna = 20
+y_columna = 100
+espacio = 120
+rect_mute = boton_mute.get_rect(topleft=(x_columna, y_columna))
+rect_unmute = boton_unmute.get_rect(topleft=(x_columna, y_columna))
+rect_vol_up = boton_vol_up.get_rect(topleft=(x_columna, y_columna + espacio))
+rect_vol_down = boton_vol_down.get_rect(topleft=(x_columna, y_columna + espacio*2))
 
 # === Círculos por materia (posición, radio, materia) ===
 circulos = [
@@ -113,6 +138,15 @@ circulos = [
     {"centro": (325, 265), "radio": 40, "materia": "Español"},
     {"centro": (785, 610), "radio": 40, "materia": "Sociales2"},
     {"centro": (890, 560), "radio": 40, "materia": "Matematicas2"},
+    {"centro": (1015, 350), "radio": 40, "materia": "Español2"},
+    {"centro": (985, 250), "radio": 40, "materia": "Naturales2"},
+    {"centro": (905, 170), "radio": 40, "materia": "Ingles2"},
+    {"centro": (685, 130), "radio": 40, "materia": "Sociales3"},
+    {"centro": (585, 160), "radio": 40, "materia": "Matematicas3"},
+    {"centro": (505, 230), "radio": 40, "materia": "Español3"},
+    {"centro": (480, 320), "radio": 40, "materia": "Naturales3"},
+    {"centro": (535, 410), "radio": 40, "materia": "Ingles3"},
+    {"centro": (630, 460), "radio": 40, "materia": "Sociales4"},
 ]
 
 # === Orden del recorrido ===
@@ -124,6 +158,15 @@ orden_antihorario = [
     "Ingles",
     "Sociales2",
     "Matematicas2",
+    "Español2",
+    "Naturales2",
+    "Ingles2",
+    "Sociales3"
+    "Matematicas3",
+    "Español3",
+    "Naturales3",
+    "Ingles3",
+    "Sociales4",
 ]
 
 # === Sprite del equipo ===
