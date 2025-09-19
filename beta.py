@@ -1,5 +1,6 @@
 import pygame
 import sys
+from base_de_datos import respuesta_multiple
 
 pygame.init()
 
@@ -32,7 +33,6 @@ boton_jugar_hover = cargar_img("img/JUGAR.png", (220, 55))
 boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
 
-circulo = cargar_img("img/circulo.jpg", (50, 50))
 logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
 
@@ -48,6 +48,7 @@ rect_jugar_hover = boton_jugar_hover.get_rect(center=rect_jugar.center)
 pos_creditos = (880, 580)
 rect_creditos = boton_creditos.get_rect(topleft=pos_creditos)
 rect_creditos_hover = boton_creditos_hover.get_rect(center=rect_creditos.center)
+
 
 # Clase de jugador/equipo
 class Equipo1(pygame.sprite.Sprite):
@@ -75,7 +76,7 @@ while corriendo:
             if evento.key == pygame.K_ESCAPE:
                 corriendo = False
         elif evento.type == pygame.VIDEORESIZE:
-            ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
+            ventana = pygame.display.set_mode((evento.w, evento.h))
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             if pantalla_actual in ["ajustes", "creditos", "jugar"] and boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
@@ -107,10 +108,13 @@ while corriendo:
 
     elif pantalla_actual == "jugar":
         ventana.fill((255, 255, 200))
-        ventana.blit(circulo, (150, 500))
+        circulo = pygame.draw.circle(ventana, NEGRO, (160,550),20)
         grupo_equipo_1.update()
         grupo_equipo_1.draw(ventana)
         pygame.draw.rect(ventana, ROJO, boton_salir)
+        if equipo1.rect.colliderect(circulo):
+            for i in range(1):
+                respuesta_multiple()
 
     elif pantalla_actual == "creditos":
         ventana.fill((255, 255, 200))
