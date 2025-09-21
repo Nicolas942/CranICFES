@@ -215,6 +215,15 @@ TIEMPO_LIMITE = 60000  # 60 segundos en milisegundos
 # ⚔️ Sistema de turnos
 turno_actual = "equipo1"  # Empieza el equipo 1
 
+# === Estado del modo dibujo ===
+dibujando = False
+superficie_dibujo = None
+color_dibujo = NEGRO
+grosor_dibujo = 5
+ultima_pos = None
+tiempo_inicio_dibujo = 0
+mostrando_validacion_dibujo = False
+
 # === Fuentes ===
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
 fuente_opciones = pygame.font.SysFont("Arial", 30)
@@ -232,7 +241,8 @@ while corriendo:
     clock.tick(60) 
     mouse_pos = pygame.mouse.get_pos()
     rect_boton_salir = None
-    if pantalla_actual in ["ajustes", "creditos", "jugar", "mago"]:
+    rect_terminar = None
+    if pantalla_actual in ["ajustes", "creditos", "jugar", "mago", "dibujar"]:
         rect_boton_salir = pygame.Rect(ventana.get_width() - 150, 10, 120, 100)
 
     # === Eventos ===
@@ -248,12 +258,16 @@ while corriendo:
                     corriendo = False
         elif evento.type == pygame.VIDEORESIZE:
             ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
+            if pantalla_actual == "dibujar":
+                superficie_dibujo = None
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             # Botón de salir (atrás) en pantallas secundarias
             if rect_boton_salir and rect_boton_salir.collidepoint(mouse_pos):
                 pantalla_actual = "menu"
                 mostrando_pregunta = False
                 mostrando_retroalimentacion = False
+                if pantalla_actual != "dibujar":
+                    superficie_dibujo = None
 
             # Menú principal
             elif pantalla_actual == "menu":
@@ -287,32 +301,89 @@ while corriendo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
 
-            # Jugar: mostrar pregunta al hacer clic en círculo (respetando turno, sin colisión física)
+            # Jugar: mostrar pregunta al hacer clic en círculo
             elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circ in circulos:
                     cx, cy = circ["centro"]
                     r = circ["radio"]
-
-                    # Verificar clic dentro del círculo
                     dist_click = ((mouse_pos[0] - cx)**2 + (mouse_pos[1] - cy)**2)**0.5
                     if dist_click <= r:
                         materia_original = circ["materia"]
                         materia_real = alias_materias.get(materia_original, materia_original)
                         pregunta_data = obtener_pregunta_aleatoria(materia_real)
                         if pregunta_data:
-                            if not all(k in pregunta_data for k in ("pregunta", "opciones", "respuesta")):
-                                print("⚠️  Pregunta mal formada:", pregunta_data)
+                            if not all(k in pregunta_data for k in ("pregunta",)):
+                                print("⚠️  Pregunta mal formada (falta 'pregunta'):", pregunta_data)
                                 break
-                            pregunta_data["materia"] = materia_original
-                            mostrando_pregunta = True
-                            botones_opciones = []
-                            tiempo_inicio_pregunta = pygame.time.get_ticks()
+                            if pregunta_data.get("actividad") == "dibujar":
+                                pregunta_data["materia"] = materia_original
+                                mostrando_pregunta = True
+                                botones_opciones = []
+                                tiempo_inicio_pregunta = pygame.time.get_ticks()                            
+                            else:
+                                if not all(k in pregunta_data for k in ("opciones", "respuesta")):
+                                    print("⚠️  Pregunta mal formada (faltan opciones o respuesta):", pregunta_data)
+                                    break
+                                pregunta_data["materia"] = materia_original
+                                mostrando_pregunta = True
+                                botones_opciones = []
+                                tiempo_inicio_pregunta = pygame.time.get_ticks()
                         else:
                             print(f"⚠️  No se pudo cargar pregunta para: {materia_real}")
                         break
 
-            # Responder con clic en opción
-            elif mostrando_pregunta and pregunta_data:
+            # Entrar al modo dibujo
+            elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "dibujar":
+                pantalla_actual = "dibujar"
+                mostrando_pregunta = False
+                tiempo_inicio_dibujo = pygame.time.get_ticks()
+            # Eventos dentro del modo dibujo (solo si NO estamos en validación)
+            elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
+                boton_terminar_texto = fuente_pregunta.render("TERMINAR", True, BLANCO)
+                rect_terminar = boton_terminar_texto.get_rect(center=(ANCHO // 2, ALTO - 80))
+                if rect_terminar.collidepoint(mouse_pos):
+                    mostrando_validacion_dibujo = True                
+                else:
+                    dibujando = True
+                if superficie_dibujo:
+                    pygame.draw.circle(superficie_dibujo, color_dibujo, evento.pos, grosor_dibujo // 2)
+                    ultima_pos = evento.pos
+
+            # Manejar clics en validación de dibujo
+            elif pantalla_actual == "dibujar" and mostrando_validacion_dibujo:
+                boton_correcto = fuente_pregunta.render("✅ CORRECTO", True, BLANCO)
+                rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 50))
+                boton_incorrecto = fuente_pregunta.render("❌ INCORRECTO", True, BLANCO)
+                rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 50))
+
+                if rect_correcto.collidepoint(mouse_pos):
+                    # Avanzar posición
+                    try:
+                        idx_actual = orden_antihorario.index(pregunta_data["materia"])
+                    except ValueError:
+                        idx_actual = 0
+                    siguiente_materia = orden_antihorario[(idx_actual + 1) % len(orden_antihorario)]
+                    equipo_actual = equipo1 if turno_actual == "equipo1" else equipo2
+                    for c in circulos:
+                        if c["materia"] == siguiente_materia:
+                            equipo_actual.rect.center = c["centro"]
+                            break
+                    # Cambiar turno y volver
+                    cambiar_turno()
+                    pantalla_actual = "jugar"
+                    superficie_dibujo = None
+                    ultima_pos = None
+                    mostrando_validacion_dibujo = False
+                elif rect_incorrecto.collidepoint(mouse_pos):
+                    # Solo cambiar turno
+                    cambiar_turno()
+                    pantalla_actual = "jugar"
+                    superficie_dibujo = None
+                    ultima_pos = None
+                    mostrando_validacion_dibujo = False
+
+            # Responder con clic en opción (solo si NO es modo dibujo)
+            elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") != "dibujar":
                 for rect_boton, opcion_idx in botones_opciones:
                     if rect_boton.collidepoint(mouse_pos):
                         try:
@@ -323,7 +394,6 @@ while corriendo:
                                 respuesta_idx = respuesta_raw
                         except (ValueError, TypeError, KeyError):
                             respuesta_idx = None
-
                         if respuesta_idx == opcion_idx:
                             mensaje_retro = "¡Correcto!"
                             color_retro = (0, 255, 0)
@@ -332,8 +402,6 @@ while corriendo:
                             except ValueError:
                                 idx_actual = 0
                             siguiente_materia = orden_antihorario[(idx_actual + 1) % len(orden_antihorario)]
-
-                            # Mover solo el equipo que está en turno
                             equipo_actual = equipo1 if turno_actual == "equipo1" else equipo2
                             for c in circulos:
                                 if c["materia"] == siguiente_materia:
@@ -342,15 +410,27 @@ while corriendo:
                         else:
                             mensaje_retro = "Incorrecto"
                             color_retro = (255, 0, 0)
-
                         mostrando_pregunta = False
                         mostrando_retroalimentacion = True
                         temporizador_retro = pygame.time.get_ticks()
-                        cambiar_turno()  # ← ¡CAMBIAR TURNO!
+                        cambiar_turno()
                         break
 
-    # ⏱️ TEMPORIZADOR: Verificar si se acabó el tiempo durante una pregunta
-    if mostrando_pregunta and pregunta_data:
+        elif evento.type == pygame.MOUSEBUTTONUP and evento.button == 1:
+            if pantalla_actual == "dibujar":
+                dibujando = False
+                ultima_pos = None
+
+        elif evento.type == pygame.MOUSEMOTION:
+            if pantalla_actual == "dibujar" and dibujando and superficie_dibujo:
+                if ultima_pos:
+                    pygame.draw.line(superficie_dibujo, color_dibujo, ultima_pos, evento.pos, grosor_dibujo)
+                else:
+                    pygame.draw.circle(superficie_dibujo, color_dibujo, evento.pos, grosor_dibujo // 2)
+                ultima_pos = evento.pos
+
+    # ⏱️ TEMPORIZADOR: Verificar si se acabó el tiempo durante una pregunta (solo si NO es dibujo)
+    if mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") != "dibujar":
         tiempo_actual = pygame.time.get_ticks()
         tiempo_transcurrido = tiempo_actual - tiempo_inicio_pregunta
         if tiempo_transcurrido >= TIEMPO_LIMITE:
@@ -359,40 +439,37 @@ while corriendo:
             mostrando_pregunta = False
             mostrando_retroalimentacion = True
             temporizador_retro = pygame.time.get_ticks()
-            cambiar_turno()  # ← ¡CAMBIAR TURNO!
+            cambiar_turno()
+
+    # ⏱️ TEMPORIZADOR: Verificar si se acabó el tiempo en modo dibujo
+    if pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
+        tiempo_actual = pygame.time.get_ticks()
+        tiempo_transcurrido = tiempo_actual - tiempo_inicio_dibujo
+        if tiempo_transcurrido >= TIEMPO_LIMITE:
+            mostrando_validacion_dibujo = True
 
     # === Renderizado ===
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-50, -150))
-
-        # Botones principales
         ventana.blit(boton_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else boton_ajustes, rect_ajustes.topleft)
         ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar, rect_jugar.topleft)
         ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos, rect_creditos.topleft)
-
-        # Botón YouTube
         if rect_youtube.collidepoint(mouse_pos):
             ventana.blit(boton_youtube_hover, rect_youtube.topleft)
         else:
             ventana.blit(boton_youtube, rect_youtube.topleft)
-
-        # Botón Mago
         if rect_mago.collidepoint(mouse_pos):
             ventana.blit(personaje_interfaz_hover, rect_mago.topleft)
         else:
             ventana.blit(personaje_interfaz, rect_mago.topleft)
-
-        # Logo
         ventana.blit(logo_juego, (400, 40))
 
     elif pantalla_actual == "ajustes":
         ventana.blit(fondo, (-50, -150))
         titulo = pygame.font.SysFont(None, 60).render("AJUSTES", True, NEGRO)
         ventana.blit(titulo, (ventana.get_width() // 2 - titulo.get_width() // 2, 30))
-
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
-
         if musica_activa:
             ventana.blit(boton_mute_hover if rect_mute.collidepoint(mouse_pos) else boton_mute, rect_mute.topleft)
         else:
@@ -402,13 +479,9 @@ while corriendo:
 
     elif pantalla_actual == "jugar":
         ventana.blit(tablero, (0, 0))
-
-        # Mostrar de quién es el turno
         color_turno = ROJO_MAT if turno_actual == "equipo1" else MORADO_IN
         texto_turno = fuente_pregunta.render(f"Turno: {turno_actual.upper()}", True, color_turno)
         ventana.blit(texto_turno, (10, 10))
-
-        # Dibujar círculos por materia
         for circ in circulos:
             centro = circ["centro"]
             radio = circ["radio"]
@@ -417,58 +490,53 @@ while corriendo:
             pygame.draw.circle(ventana, color, centro, radio)
             texto_materia = fuente_ayuda.render(materia, True, NEGRO)
             ventana.blit(texto_materia, (centro[0] - texto_materia.get_width() // 2, centro[1] - 8))
-
         grupo_equipo.update()
         grupo_equipo.draw(ventana)
-
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
-        # Mostrar pregunta
         if mostrando_pregunta and pregunta_data:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
             overlay.fill(NEGRO)
             ventana.blit(overlay, (0, 0))
-
             titulo_materia = fuente_pregunta.render(f"{pregunta_data['materia']}", True, materias[pregunta_data['materia']])
             ventana.blit(titulo_materia, (ANCHO // 2 - titulo_materia.get_width() // 2, 80))
-
             render_pregunta = fuente_pregunta.render(pregunta_data["pregunta"], True, BLANCO)
             ventana.blit(render_pregunta, render_pregunta.get_rect(center=(ANCHO // 2, 150)))
 
-            y_opcion = 220
-            botones_opciones.clear()
-            for i, opcion in enumerate(pregunta_data["opciones"]):
-                texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
-                rect_boton = texto.get_rect(center=(ANCHO // 2, y_opcion))
-                color_fondo = (100, 100, 100) if rect_boton.collidepoint(mouse_pos) else (50, 50, 50)
-                pygame.draw.rect(ventana, color_fondo, rect_boton.inflate(30, 15), border_radius=10)
-                ventana.blit(texto, rect_boton)
-                botones_opciones.append((rect_boton, i))
-                y_opcion += 60
+            if pregunta_data.get("actividad") == "dibujar":
+                mensaje = fuente_ayuda.render("Haz clic en cualquier lugar para entrar al modo dibujo", True, (100, 200, 255))
+                ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, ALTO - 100))
+            else:
+                y_opcion = 220
+                botones_opciones.clear()
+                for i, opcion in enumerate(pregunta_data["opciones"]):
+                    texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
+                    rect_boton = texto.get_rect(center=(ANCHO // 2, y_opcion))
+                    color_fondo = (100, 100, 100) if rect_boton.collidepoint(mouse_pos) else (50, 50, 50)
+                    pygame.draw.rect(ventana, color_fondo, rect_boton.inflate(30, 15), border_radius=10)
+                    ventana.blit(texto, rect_boton)
+                    botones_opciones.append((rect_boton, i))
+                    y_opcion += 60
+                mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
+                ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 30))
 
-            mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
-            ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 30))
+            if pregunta_data.get("actividad") != "dibujar":
+                tiempo_actual = pygame.time.get_ticks()
+                tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_pregunta)) // 1000)
+                texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
+                ventana.blit(texto_tiempo, (1150, 0))
 
-            # Mostrar tiempo restante
-            tiempo_actual = pygame.time.get_ticks()
-            tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_pregunta)) // 1000)
-            texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
-            ventana.blit(texto_tiempo, (1150, 0))
-
-        # Mostrar retroalimentación
         if mostrando_retroalimentacion:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
             overlay.fill(NEGRO)
             ventana.blit(overlay, (0, 0))
-
             fuente_grande = pygame.font.SysFont("Arial", 72, bold=True)
             texto = fuente_grande.render(mensaje_retro, True, color_retro)
             rect_texto = texto.get_rect(center=(ANCHO // 2, ALTO // 2))
             ventana.blit(texto, rect_texto)
-
             instruccion = fuente_ayuda.render("Cerrando en 1 segundo...", True, BLANCO)
             ventana.blit(instruccion, (ANCHO // 2 - instruccion.get_width() // 2, ALTO // 2 + 60))
 
@@ -476,7 +544,6 @@ while corriendo:
         ventana.blit(fondo, (-50, -150))
         texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
-
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
@@ -487,9 +554,45 @@ while corriendo:
         texto2 = fuente_ayuda.render("Estoy aquí para ayudarte a aprender.", True, NEGRO)
         ventana.blit(texto1, (ANCHO // 2 - texto1.get_width() // 2, ALTO // 2 - 60))
         ventana.blit(texto2, (ANCHO // 2 - texto2.get_width() // 2, ALTO // 2))
-
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+
+    elif pantalla_actual == "dibujar":
+        if superficie_dibujo is None:
+            superficie_dibujo = pygame.Surface((ANCHO, ALTO))
+            superficie_dibujo.fill(BLANCO)
+
+        if not mostrando_validacion_dibujo:
+            ventana.fill(BLANCO)
+            ventana.blit(superficie_dibujo, (0, 0))
+            texto = fuente_pregunta.render("Modo Dibujo - Mantén presionado el clic para dibujar", True, NEGRO)
+            ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, 20))
+            tiempo_actual = pygame.time.get_ticks()
+            tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_dibujo)) // 1000)
+            texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 0, 0))
+            ventana.blit(texto_tiempo, (1150, 10))
+            boton_terminar_texto = fuente_pregunta.render("TERMINAR", True, BLANCO)
+            rect_terminar = boton_terminar_texto.get_rect(center=(ANCHO // 2, ALTO - 80))
+            color_boton = (200, 0, 0) if rect_terminar.collidepoint(mouse_pos) else (255, 0, 0)
+            pygame.draw.rect(ventana, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
+            ventana.blit(boton_terminar_texto, rect_terminar)
+        else:
+            overlay = pygame.Surface((ANCHO, ALTO))
+            overlay.set_alpha(200)
+            overlay.fill(NEGRO)
+            ventana.blit(overlay, (0, 0))
+            texto_titulo = fuente_pregunta.render("Considera que la respuesta es correcta", True, BLANCO)
+            ventana.blit(texto_titulo, texto_titulo.get_rect(center=(ANCHO // 2, ALTO // 2 - 80)))
+            boton_correcto = fuente_pregunta.render("✅ CORRECTO", True, BLANCO)
+            rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 50))
+            color_correcto = (0, 200, 0) if rect_correcto.collidepoint(mouse_pos) else (0, 255, 0)
+            pygame.draw.rect(ventana, color_correcto, rect_correcto.inflate(40, 30), border_radius=15)
+            ventana.blit(boton_correcto, rect_correcto)
+            boton_incorrecto = fuente_pregunta.render("❌ INCORRECTO", True, BLANCO)
+            rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 50))
+            color_incorrecto = (200, 0, 0) if rect_incorrecto.collidepoint(mouse_pos) else (255, 0, 0)
+            pygame.draw.rect(ventana, color_incorrecto, rect_incorrecto.inflate(40, 30), border_radius=15)
+            ventana.blit(boton_incorrecto, rect_incorrecto)
 
     # === Cerrar retroalimentación después de 1 segundo ===
     if mostrando_retroalimentacion and pygame.time.get_ticks() - temporizador_retro > 1000:
