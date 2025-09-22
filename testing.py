@@ -96,7 +96,7 @@ def cargar_img(ruta, tamaño=None):
 # === Cargar imágenes principales ===
 logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
-tablero = cargar_img("img/tablero1.png")  # Sin tamaño fijo
+tablero = cargar_img("img/tablero1.png", (1366, 720))
 
 # === Botones menú ===
 boton_ajustes = cargar_img("img/AJUSTES.png", (200, 50))
@@ -126,57 +126,43 @@ boton_vol_down = cargar_img("img/vol_down.png", (100, 100))
 boton_vol_down_hover = cargar_img("img/vol_down.png", (120, 120))
 mago_personaje = cargar_img("img/MAGO_MTMC.png", (100,100))
 
-# === Posiciones menú (se recalcularán dinámicamente) ===
-rect_ajustes = pygame.Rect(0, 0, 200, 50)
-rect_jugar = pygame.Rect(0, 0, 200, 50)
-rect_creditos = pygame.Rect(0, 0, 200, 50)
+# === Posiciones menú ===
+rect_ajustes = boton_ajustes.get_rect(topleft=(220, 580))
+rect_jugar = boton_jugar.get_rect(topleft=(550, 580))
+rect_creditos = boton_creditos.get_rect(topleft=(880, 580))
 
 # === Botones adicionales ===
-rect_youtube = pygame.Rect(0, 0, 150, 150)
-rect_mago = pygame.Rect(0, 0, 250, 250)
+rect_youtube = boton_youtube.get_rect(topleft=(60, 300))
+rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
 
 # === Música botones ===
 x_columna = 20
 y_columna = 100
 espacio = 120
-rect_mute = pygame.Rect(x_columna, y_columna, 100, 100)
-rect_unmute = pygame.Rect(x_columna, y_columna, 100, 100)
-rect_vol_up = pygame.Rect(x_columna, y_columna + espacio, 100, 100)
-rect_vol_down = pygame.Rect(x_columna, y_columna + espacio*2, 100, 100)
+rect_mute = boton_mute.get_rect(topleft=(x_columna, y_columna))
+rect_unmute = boton_unmute.get_rect(topleft=(x_columna, y_columna))
+rect_vol_up = boton_vol_up.get_rect(topleft=(x_columna, y_columna + espacio))
+rect_vol_down = boton_vol_down.get_rect(topleft=(x_columna, y_columna + espacio*2))
 
-# === Círculos por materia (definidos como porcentajes) ===
-circulos_porcentajes = [
-    {"x": 0.37, "y": 0.125, "radio": 50, "materia": "Matematicas"},
-    {"x": 0.28, "y": 0.24, "radio": 40, "materia": "Sociales"},
-    {"x": 0.34, "y": 0.78, "radio": 40, "materia": "Ingles"},
-    {"x": 0.27, "y": 0.69, "radio": 40, "materia": "Naturales"},
-    {"x": 0.24, "y": 0.37, "radio": 40, "materia": "Español"},
-    {"x": 0.57, "y": 0.84, "radio": 40, "materia": "Sociales2"},
-    {"x": 0.65, "y": 0.78, "radio": 40, "materia": "Matematicas2"},
-    {"x": 0.74, "y": 0.48, "radio": 40, "materia": "Español2"},
-    {"x": 0.73, "y": 0.34, "radio": 40, "materia": "Naturales2"},
-    {"x": 0.67, "y": 0.23, "radio": 40, "materia": "Ingles2"},
-    {"x": 0.50, "y": 0.18, "radio": 40, "materia": "Sociales3"},
-    {"x": 0.43, "y": 0.22, "radio": 40, "materia": "Matematicas3"},
-    {"x": 0.37, "y": 0.32, "radio": 40, "materia": "Español3"},
-    {"x": 0.35, "y": 0.44, "radio": 40, "materia": "Naturales3"},
-    {"x": 0.39, "y": 0.57, "radio": 40, "materia": "Ingles3"},
-    {"x": 0.46, "y": 0.64, "radio": 40, "materia": "Sociales4"},
+# === Círculos por materia (posición, radio, materia) ===
+circulos = [
+    {"centro": (510, 90), "radio": 50, "materia": "Matematicas"},
+    {"centro": (385, 175), "radio": 40, "materia": "Sociales"},
+    {"centro": (460, 565), "radio": 40, "materia": "Ingles"},
+    {"centro": (365, 495), "radio": 40, "materia": "Naturales"},
+    {"centro": (325, 265), "radio": 40, "materia": "Español"},
+    {"centro": (785, 610), "radio": 40, "materia": "Sociales2"},
+    {"centro": (890, 560), "radio": 40, "materia": "Matematicas2"},
+    {"centro": (1015, 350), "radio": 40, "materia": "Español2"},
+    {"centro": (985, 250), "radio": 40, "materia": "Naturales2"},
+    {"centro": (905, 170), "radio": 40, "materia": "Ingles2"},
+    {"centro": (685, 130), "radio": 40, "materia": "Sociales3"},
+    {"centro": (585, 160), "radio": 40, "materia": "Matematicas3"},
+    {"centro": (505, 230), "radio": 40, "materia": "Español3"},
+    {"centro": (480, 320), "radio": 40, "materia": "Naturales3"},
+    {"centro": (535, 410), "radio": 40, "materia": "Ingles3"},
+    {"centro": (630, 460), "radio": 40, "materia": "Sociales4"},
 ]
-
-# Convertir a píxeles
-def actualizar_circulos():
-    global circulos
-    circulos = [
-        {
-            "centro": (int(c["x"] * ANCHO), int(c["y"] * ALTO)),
-            "radio": c["radio"],
-            "materia": c["materia"]
-        }
-        for c in circulos_porcentajes
-    ]
-
-actualizar_circulos()
 
 # === Orden del recorrido ===
 orden_antihorario = [
@@ -245,17 +231,11 @@ elementos_seleccionados = []  # Guarda índices seleccionados para intercambiar
 tiempo_inicio_organizar = 0
 mostrando_validacion_organizar = False
 
-# === Fuentes (se recalcularán dinámicamente) ===
-def actualizar_fuentes():
-    global fuente_pregunta, fuente_opciones, fuente_ayuda, fuente_tiempo
-    base_ancho = 1920
-    escala = ANCHO / base_ancho
-    fuente_pregunta = pygame.font.SysFont("Arial", int(36 * escala), bold=True)
-    fuente_opciones = pygame.font.SysFont("Arial", int(30 * escala))
-    fuente_ayuda = pygame.font.SysFont("Arial", int(24 * escala))
-    fuente_tiempo = pygame.font.SysFont("Arial", int(36 * escala), bold=True)
-
-actualizar_fuentes()
+# === Fuentes ===
+fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
+fuente_opciones = pygame.font.SysFont("Arial", 30)
+fuente_ayuda = pygame.font.SysFont("Arial", 24)
+fuente_tiempo = pygame.font.SysFont("Arial", 36, bold=True)
 
 # === Funciones de ayuda para dibujar recuadros uniformes y texto envuelto ===
 def wrap_text(font, text, max_width):
@@ -319,29 +299,9 @@ while corriendo:
                 else:
                     corriendo = False
         elif evento.type == pygame.VIDEORESIZE:
-            ANCHO, ALTO = evento.w, evento.h
-            ventana = pygame.display.set_mode((ANCHO, ALTO), pygame.RESIZABLE)
-            
-            # Recalcular posiciones
-            actualizar_circulos()
-            actualizar_fuentes()
-            
-            # Botones del menú
-            boton_y = int(ALTO * 0.8)
-            espacio_entre_botones = int(ANCHO * 0.15)
-            total_ancho_botones = 3 * 200 + 2 * espacio_entre_botones
-            inicio_x = (ANCHO - total_ancho_botones) // 2
-            rect_ajustes.topleft = (inicio_x, boton_y)
-            rect_jugar.topleft = (inicio_x + 200 + espacio_entre_botones, boton_y)
-            rect_creditos.topleft = (inicio_x + 2*200 + 2*espacio_entre_botones, boton_y)
-            
-            # Botones adicionales
-            rect_youtube.topleft = (int(ANCHO * 0.05), int(ALTO * 0.2))
-            rect_mago.topleft = (int(ANCHO * 0.8), int(ALTO * 0.2))
-            
+            ventana = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
             if pantalla_actual == "dibujar":
                 superficie_dibujo = None
-
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             # Botón de salir (atrás) en pantallas secundarias
             if rect_boton_salir and rect_boton_salir.collidepoint(mouse_pos):
@@ -629,24 +589,9 @@ while corriendo:
     # === Renderizado ===
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-50, -150))
-        
-        # Posicionar botones dinámicamente
-        boton_y = int(ALTO * 0.8)
-        espacio_entre_botones = int(ANCHO * 0.15)
-        total_ancho_botones = 3 * 200 + 2 * espacio_entre_botones
-        inicio_x = (ANCHO - total_ancho_botones) // 2
-        rect_ajustes.topleft = (inicio_x, boton_y)
-        rect_jugar.topleft = (inicio_x + 200 + espacio_entre_botones, boton_y)
-        rect_creditos.topleft = (inicio_x + 2*200 + 2*espacio_entre_botones, boton_y)
-        
         ventana.blit(boton_ajustes_hover if rect_ajustes.collidepoint(mouse_pos) else boton_ajustes, rect_ajustes.topleft)
         ventana.blit(boton_jugar_hover if rect_jugar.collidepoint(mouse_pos) else boton_jugar, rect_jugar.topleft)
         ventana.blit(boton_creditos_hover if rect_creditos.collidepoint(mouse_pos) else boton_creditos, rect_creditos.topleft)
-        
-        # Botones adicionales
-        rect_youtube.topleft = (int(ANCHO * 0.05), int(ALTO * 0.2))
-        rect_mago.topleft = (int(ANCHO * 0.8), int(ALTO * 0.2))
-        
         if rect_youtube.collidepoint(mouse_pos):
             ventana.blit(boton_youtube_hover, rect_youtube.topleft)
         else:
@@ -655,7 +600,7 @@ while corriendo:
             ventana.blit(personaje_interfaz_hover, rect_mago.topleft)
         else:
             ventana.blit(personaje_interfaz, rect_mago.topleft)
-        ventana.blit(logo_juego, (ANCHO // 2 - logo_juego.get_width() // 2, 40))
+        ventana.blit(logo_juego, (400, 40))
 
     elif pantalla_actual == "ajustes":
         ventana.blit(fondo, (-50, -150))
@@ -671,14 +616,10 @@ while corriendo:
         ventana.blit(boton_vol_down_hover if rect_vol_down.collidepoint(mouse_pos) else boton_vol_down, rect_vol_down.topleft)
 
     elif pantalla_actual == "jugar":
-        # Escalar tablero al tamaño de la ventana
-        tablero_escalado = pygame.transform.scale(tablero, (ANCHO, ALTO))
-        ventana.blit(tablero_escalado, (0, 0))
-        
+        ventana.blit(tablero, (0, 0))
         color_turno = ROJO_MAT if turno_actual == "equipo1" else MORADO_IN
         texto_turno = fuente_pregunta.render(f"Turno: {turno_actual.upper()}", True, color_turno)
         ventana.blit(texto_turno, (10, 10))
-        
         for circ in circulos:
             centro = circ["centro"]
             radio = circ["radio"]
@@ -687,10 +628,8 @@ while corriendo:
             pygame.draw.circle(ventana, color, centro, radio)
             texto_materia = fuente_ayuda.render(materia, True, NEGRO)
             ventana.blit(texto_materia, (centro[0] - texto_materia.get_width() // 2, centro[1] - 8))
-        
         grupo_equipo.update()
         grupo_equipo.draw(ventana)
-        
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
 
@@ -755,7 +694,7 @@ while corriendo:
                 tiempo_actual = pygame.time.get_ticks()
                 tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_organizar)) // 1000)
                 texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
-                ventana.blit(texto_tiempo, (int(ANCHO * 0.9), 10))
+                ventana.blit(texto_tiempo, (1150, 0))
 
             # Modo selección normal
             else:
@@ -779,7 +718,7 @@ while corriendo:
                 tiempo_actual = pygame.time.get_ticks()
                 tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_pregunta)) // 1000)
                 texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
-                ventana.blit(texto_tiempo, (int(ANCHO * 0.9), 10))
+                ventana.blit(texto_tiempo, (1150, 0))
 
         if mostrando_retroalimentacion:
             overlay = pygame.Surface((ANCHO, ALTO))
@@ -823,7 +762,7 @@ while corriendo:
             tiempo_actual = pygame.time.get_ticks()
             tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_dibujo)) // 1000)
             texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 0, 0))
-            ventana.blit(texto_tiempo, (int(ANCHO * 0.9), 10))
+            ventana.blit(texto_tiempo, (1150, 10))
             boton_terminar_texto = fuente_pregunta.render("TERMINAR", True, BLANCO)
             rect_terminar = boton_terminar_texto.get_rect(center=(ANCHO // 2, ALTO - 80))
             color_boton = (200, 0, 0) if rect_terminar.collidepoint(mouse_pos) else (255, 0, 0)
