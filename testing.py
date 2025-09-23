@@ -231,6 +231,9 @@ elementos_seleccionados = []  # Guarda índices seleccionados para intercambiar
 tiempo_inicio_organizar = 0
 mostrando_validacion_organizar = False
 
+# === Lista para evitar repeticiones de preguntas ===
+preguntas_usadas = set()
+
 # === Fuentes ===
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
 fuente_opciones = pygame.font.SysFont("Arial", 30)
@@ -352,7 +355,38 @@ while corriendo:
                     if dist_click <= r:
                         materia_original = circ["materia"]
                         materia_real = alias_materias.get(materia_original, materia_original)
-                        pregunta_data = obtener_pregunta_aleatoria(materia_real)
+
+                        # Intentar obtener una pregunta no repetida (máximo 10 intentos)
+                        pregunta_data = None
+                        intentos = 0
+                        max_intentos = 10
+
+                        while intentos < max_intentos:
+                            temp_pregunta = obtener_pregunta_aleatoria(materia_real)
+                            if not temp_pregunta:
+                                break
+
+                            # Generar clave única: si tiene 'id', usarlo; si no, usar el texto de la pregunta
+                            clave_unica = temp_pregunta.get("id") or temp_pregunta.get("pregunta")
+                            if not clave_unica:
+                                print("⚠️ Pregunta sin identificador único:", temp_pregunta)
+                                pregunta_data = temp_pregunta
+                                break
+
+                            if clave_unica not in preguntas_usadas:
+                                pregunta_data = temp_pregunta
+                                preguntas_usadas.add(clave_unica)  # ¡La marcamos como usada!
+                                break
+
+                            intentos += 1
+
+                        if not pregunta_data:
+                            print(f"⚠️ No se pudo obtener una pregunta NO repetida para {materia_real} después de {max_intentos} intentos.")
+                            # OPCIONAL: Reiniciar lista si se agotan todas las preguntas
+                            # print(f"🔄 Reiniciando lista de preguntas usadas para {materia_real}")
+                            # preguntas_usadas.clear()
+                            # pregunta_data = obtener_pregunta_aleatoria(materia_real)
+
                         if pregunta_data:
                             if not all(k in pregunta_data for k in ("pregunta",)):
                                 print("Pregunta mal formada (falta 'pregunta'):", pregunta_data)
@@ -364,11 +398,9 @@ while corriendo:
                                 mostrando_pregunta = True
                                 botones_opciones = []
                                 tiempo_inicio_pregunta = pygame.time.get_ticks()
-                                
 
-                            # Modo organizar (acepta "opciones" o "elementos")
+                            # Modo organizar
                             elif pregunta_data.get("actividad") == "organizar":
-                                # Si no tiene "elementos" pero tiene "opciones", lo asignamos
                                 if "elementos" not in pregunta_data and "opciones" in pregunta_data:
                                     pregunta_data["elementos"] = pregunta_data["opciones"]
                                 if not all(k in pregunta_data for k in ("elementos", "respuesta")):
@@ -381,7 +413,6 @@ while corriendo:
                                 mostrando_pregunta = True
                                 botones_opciones = []
                                 tiempo_inicio_organizar = pygame.time.get_ticks()
-                                
 
                             # Modo selección normal
                             else:
@@ -401,7 +432,6 @@ while corriendo:
                 pantalla_actual = "dibujar"
                 mostrando_pregunta = False
                 tiempo_inicio_dibujo = pygame.time.get_ticks()
-                
 
             # Manejar clics en modo organizar (usando rects fijos)
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
@@ -451,7 +481,6 @@ while corriendo:
                     temporizador_retro = pygame.time.get_ticks()
                     elementos_organizar = []
                     elementos_seleccionados = []
-                    
 
             # Manejar clics en modo dibujo 
             elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
@@ -496,7 +525,6 @@ while corriendo:
                     superficie_dibujo = None
                     ultima_pos = None
                     mostrando_validacion_dibujo = False
-                
 
             # Responder con clic en opción 
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") not in ["dibujar", "organizar"]:
@@ -563,7 +591,6 @@ while corriendo:
         tiempo_transcurrido = tiempo_actual - tiempo_inicio_dibujo
         if tiempo_transcurrido >= TIEMPO_LIMITE:
             mostrando_validacion_dibujo = True
-            
 
     # TEMPORIZADOR:modo organizar
     if mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
@@ -593,7 +620,6 @@ while corriendo:
             temporizador_retro = pygame.time.get_ticks()
             elementos_organizar = []
             elementos_seleccionados = []
-            
 
     # === Renderizado ===
     if pantalla_actual == "menu":
@@ -762,7 +788,6 @@ while corriendo:
         if superficie_dibujo is None:
             superficie_dibujo = pygame.Surface((ANCHO, ALTO))
             superficie_dibujo.fill(BLANCO)
-        
 
         if not mostrando_validacion_dibujo:
             ventana.fill(BLANCO)
@@ -778,7 +803,7 @@ while corriendo:
             color_boton = (200, 0, 0) if rect_terminar.collidepoint(mouse_pos) else (255, 0, 0)
             pygame.draw.rect(ventana, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
             ventana.blit(boton_terminar_texto, rect_terminar)
-           
+
         else:
             texto_titulo = fuente_pregunta.render("Considera que la respuesta es correcta", True, ROJO_MAT)
             ventana.blit(texto_titulo, texto_titulo.get_rect(center=(ANCHO // 2, ALTO // 2 - 80)))
