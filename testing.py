@@ -364,7 +364,7 @@ while corriendo:
                                 mostrando_pregunta = True
                                 botones_opciones = []
                                 tiempo_inicio_pregunta = pygame.time.get_ticks()
-                                print("🎨 Modo dibujo activado para esta pregunta.")
+                                
 
                             # Modo organizar (acepta "opciones" o "elementos")
                             elif pregunta_data.get("actividad") == "organizar":
@@ -381,7 +381,7 @@ while corriendo:
                                 mostrando_pregunta = True
                                 botones_opciones = []
                                 tiempo_inicio_organizar = pygame.time.get_ticks()
-                                print("🧩 Modo organizar activado para esta pregunta.")
+                                
 
                             # Modo selección normal
                             else:
@@ -401,7 +401,7 @@ while corriendo:
                 pantalla_actual = "dibujar"
                 mostrando_pregunta = False
                 tiempo_inicio_dibujo = pygame.time.get_ticks()
-                print("🖌️ Entrando al modo dibujo...")
+                
 
             # Manejar clics en modo organizar (usando rects fijos)
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
@@ -421,7 +421,6 @@ while corriendo:
                             idx2 = i
                             elementos_organizar[idx1], elementos_organizar[idx2] = elementos_organizar[idx2], elementos_organizar[idx1]
                             elementos_seleccionados = []
-                            print("🔄 Elementos intercambiados.")
                         break
                     y_elemento += option_height + 20
 
@@ -452,7 +451,7 @@ while corriendo:
                     temporizador_retro = pygame.time.get_ticks()
                     elementos_organizar = []
                     elementos_seleccionados = []
-                    print("✅ Validación completada en modo organizar.")
+                    
 
             # Manejar clics en modo dibujo (solo si NO estamos en validación)
             elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
@@ -460,7 +459,7 @@ while corriendo:
                 rect_terminar = boton_terminar_texto.get_rect(center=(ANCHO // 2, ALTO - 80))
                 if rect_terminar.collidepoint(mouse_pos):
                     mostrando_validacion_dibujo = True
-                    print("✅ Botón 'Terminar' presionado. Mostrando validación.")
+                    
                 else:
                     dibujando = True
                     if superficie_dibujo:
@@ -470,9 +469,9 @@ while corriendo:
             # Manejar clics en validación de dibujo
             elif pantalla_actual == "dibujar" and mostrando_validacion_dibujo:
                 boton_correcto = fuente_pregunta.render("✅ CORRECTO", True, BLANCO)
-                rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 50))
+                rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 200))
                 boton_incorrecto = fuente_pregunta.render("❌ INCORRECTO", True, BLANCO)
-                rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 50))
+                rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 200))
 
                 if rect_correcto.collidepoint(mouse_pos):
                     try:
@@ -490,14 +489,14 @@ while corriendo:
                     superficie_dibujo = None
                     ultima_pos = None
                     mostrando_validacion_dibujo = False
-                    print("✅ Respuesta validada como correcta. Avanzando posición.")
+                    
                 elif rect_incorrecto.collidepoint(mouse_pos):
                     cambiar_turno()
                     pantalla_actual = "jugar"
                     superficie_dibujo = None
                     ultima_pos = None
                     mostrando_validacion_dibujo = False
-                    print("❌ Respuesta validada como incorrecta. Solo se cambia turno.")
+                
 
             # Responder con clic en opción (solo si NO es modo dibujo ni organizar)
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") not in ["dibujar", "organizar"]:
@@ -558,15 +557,15 @@ while corriendo:
             temporizador_retro = pygame.time.get_ticks()
             cambiar_turno()
 
-    # ⏱️ TEMPORIZADOR: Verificar si se acabó el tiempo en modo dibujo
+    # TEMPORIZADOR: modo dibujo
     if pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
         tiempo_actual = pygame.time.get_ticks()
         tiempo_transcurrido = tiempo_actual - tiempo_inicio_dibujo
         if tiempo_transcurrido >= TIEMPO_LIMITE:
             mostrando_validacion_dibujo = True
-            print("⏰ Tiempo agotado en modo dibujo. Mostrando validación.")
+            
 
-    # ⏱️ TEMPORIZADOR: Verificar si se acabó el tiempo en modo organizar
+    # TEMPORIZADOR:modo organizar
     if mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
         tiempo_actual = pygame.time.get_ticks()
         tiempo_transcurrido = tiempo_actual - tiempo_inicio_organizar
@@ -594,7 +593,7 @@ while corriendo:
             temporizador_retro = pygame.time.get_ticks()
             elementos_organizar = []
             elementos_seleccionados = []
-            print("⏰ Tiempo agotado en modo organizar.")
+            
 
     # === Renderizado ===
     if pantalla_actual == "menu":
@@ -763,7 +762,7 @@ while corriendo:
         if superficie_dibujo is None:
             superficie_dibujo = pygame.Surface((ANCHO, ALTO))
             superficie_dibujo.fill(BLANCO)
-            print("🖌️ Superficie de dibujo inicializada.")
+        
 
         if not mostrando_validacion_dibujo:
             ventana.fill(BLANCO)
@@ -779,22 +778,17 @@ while corriendo:
             color_boton = (200, 0, 0) if rect_terminar.collidepoint(mouse_pos) else (255, 0, 0)
             pygame.draw.rect(ventana, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
             ventana.blit(boton_terminar_texto, rect_terminar)
-            if rect_boton_salir:
-                ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
+           
         else:
-            overlay = pygame.Surface((ANCHO, ALTO))
-            overlay.set_alpha(200)
-            overlay.fill(NEGRO)
-            ventana.blit(overlay, (0, 0))
-            texto_titulo = fuente_pregunta.render("Considera que la respuesta es correcta", True, BLANCO)
+            texto_titulo = fuente_pregunta.render("Considera que la respuesta es correcta", True, ROJO_MAT)
             ventana.blit(texto_titulo, texto_titulo.get_rect(center=(ANCHO // 2, ALTO // 2 - 80)))
             boton_correcto = fuente_pregunta.render("✅ CORRECTO", True, BLANCO)
-            rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 50))
+            rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 200))
             color_correcto = (0, 200, 0) if rect_correcto.collidepoint(mouse_pos) else (0, 255, 0)
             pygame.draw.rect(ventana, color_correcto, rect_correcto.inflate(40, 30), border_radius=15)
             ventana.blit(boton_correcto, rect_correcto)
             boton_incorrecto = fuente_pregunta.render("❌ INCORRECTO", True, BLANCO)
-            rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 50))
+            rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 200))
             color_incorrecto = (200, 0, 0) if rect_incorrecto.collidepoint(mouse_pos) else (255, 0, 0)
             pygame.draw.rect(ventana, color_incorrecto, rect_incorrecto.inflate(40, 30), border_radius=15)
             ventana.blit(boton_incorrecto, rect_incorrecto)
