@@ -415,7 +415,7 @@ while corriendo:
                     if rect_boton.collidepoint(mouse_pos):
                         if len(elementos_seleccionados) == 0:
                             elementos_seleccionados.append(i)
-                            print(f"Seleccionado: {elemento}")
+                            
                         elif len(elementos_seleccionados) == 1:
                             idx1 = elementos_seleccionados[0]
                             idx2 = i
