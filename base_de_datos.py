@@ -45,7 +45,8 @@ def obtener_pregunta_aleatoria(materia=None):
             "opciones": documento["opciones"],
             "respuesta": documento.get("respuesta"),  
             "materia": documento["materia"],
-            "actividad" : documento["actividad"]
+            "actividad" : documento["actividad"],
+            "imagen" : documento["imagen"]
         }
     except Exception as ex:
         print("❌ Error al obtener pregunta desde la base de datos:", ex)

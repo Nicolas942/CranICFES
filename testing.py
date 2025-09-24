@@ -3,9 +3,7 @@ import sys
 import webbrowser
 import random
 from base_de_datos import obtener_pregunta_aleatoria
-
 pygame.init()
-
 # === Colores ===
 NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
@@ -15,7 +13,6 @@ AMARILLO_ES = (255, 255, 0)
 VERDE_NAT = (0, 128, 0)
 NARANJA_SOC = (255, 165, 0)
 MORADO_IN = (128, 0, 128)
-
 # === Colores por materia ===
 COLORES_MATERIAS = {
     "Matematicas": ROJO_MAT,
@@ -24,7 +21,6 @@ COLORES_MATERIAS = {
     "Sociales": NARANJA_SOC,
     "Ingles": MORADO_IN,
 }
-
 # === Mapa de materias a colores ===
 materias = {
     "Matematicas": COLORES_MATERIAS["Matematicas"],
@@ -44,7 +40,6 @@ materias = {
     "Ingles3": COLORES_MATERIAS["Ingles"],
     "Sociales4": COLORES_MATERIAS["Sociales"],
 }
-
 # === Alias de materias ===
 alias_materias = {
     "Matematicas2": "Matematicas",
@@ -59,7 +54,6 @@ alias_materias = {
     "Ingles3": "Ingles",
     "Sociales4": "Sociales",
 }
-
 # === Audio ===
 pygame.mixer.init()
 musica_activa = False
@@ -70,17 +64,14 @@ try:
     musica_activa = True
 except pygame.error:
     print("No se pudo cargar el sonido de fondo")
-
 # === Ventana ===
 info = pygame.display.Info()
 ANCHO = info.current_w
 ALTO = info.current_h
 ventana = pygame.display.set_mode((ANCHO, ALTO), pygame.RESIZABLE)
 pygame.display.set_caption("CranICFES")
-
 # === Reloj para controlar FPS ===
 clock = pygame.time.Clock()
-
 def cargar_img(ruta, tamaño=None):
     try:
         img = pygame.image.load(ruta).convert_alpha()
@@ -92,12 +83,10 @@ def cargar_img(ruta, tamaño=None):
         img = pygame.Surface(tamaño or (100, 50))
         img.fill((200, 0, 0))
         return img
-
 # === Cargar imágenes principales ===
 logo_juego = cargar_img("img/logo_juego.png")
 fondo = cargar_img("img/FONDO.png")
 tablero = cargar_img("img/tablero1.png", (1366, 720))
-
 # === Botones menú ===
 boton_ajustes = cargar_img("img/AJUSTES.png", (200, 50))
 boton_ajustes_hover = cargar_img("img/AJUSTES.png", (220, 55))
@@ -107,14 +96,12 @@ boton_creditos = cargar_img("img/CREDITOS.png", (200, 50))
 boton_creditos_hover = cargar_img("img/CREDITOS.png", (220, 55))
 boton_salir = cargar_img("img/boton_salir.png", (120, 100))
 boton_salir_hover = cargar_img("img/boton_salir.png", (140, 120))
-
 # === Botones adicionales ===
 url_youtube = "https://www.youtube.com/watch?v=yNEpyU3PnDI"
 boton_youtube = cargar_img("img/LOGO_YT.png", (150, 150))
 boton_youtube_hover = cargar_img("img/LOGO_YT.png", (200, 200))
 personaje_interfaz = cargar_img("img/MAGO_MTMC.png", (250, 250))
 personaje_interfaz_hover = cargar_img("img/MAGO_MTMC.png", (300, 300))
-
 # === Botones música ===
 boton_mute = cargar_img("img/mute.png", (100, 100))
 boton_mute_hover = cargar_img("img/mute.png", (120, 120))
@@ -125,16 +112,13 @@ boton_vol_up_hover = cargar_img("img/vol_up.png", (120, 120))
 boton_vol_down = cargar_img("img/vol_down.png", (100, 100))
 boton_vol_down_hover = cargar_img("img/vol_down.png", (120, 120))
 mago_personaje = cargar_img("img/MAGO_MTMC.png", (100,100))
-
 # === Posiciones menú ===
 rect_ajustes = boton_ajustes.get_rect(topleft=(220, 580))
 rect_jugar = boton_jugar.get_rect(topleft=(550, 580))
 rect_creditos = boton_creditos.get_rect(topleft=(880, 580))
-
 # === Botones adicionales ===
 rect_youtube = boton_youtube.get_rect(topleft=(60, 300))
 rect_mago = personaje_interfaz.get_rect(topleft=(1100, 220))
-
 # === Música botones ===
 x_columna = 20
 y_columna = 100
@@ -143,7 +127,6 @@ rect_mute = boton_mute.get_rect(topleft=(x_columna, y_columna))
 rect_unmute = boton_unmute.get_rect(topleft=(x_columna, y_columna))
 rect_vol_up = boton_vol_up.get_rect(topleft=(x_columna, y_columna + espacio))
 rect_vol_down = boton_vol_down.get_rect(topleft=(x_columna, y_columna + espacio*2))
-
 # === Círculos por materia (posición, radio, materia) ===
 circulos = [
     {"centro": (510, 90), "radio": 50, "materia": "Matematicas"},
@@ -163,7 +146,6 @@ circulos = [
     {"centro": (535, 410), "radio": 40, "materia": "Ingles3"},
     {"centro": (630, 460), "radio": 40, "materia": "Sociales4"},
 ]
-
 # === Orden del recorrido ===
 orden_antihorario = [
     "Matematicas",
@@ -183,24 +165,20 @@ orden_antihorario = [
     "Ingles3",
     "Sociales4",
 ]
-
 # === Sprite del equipo ===
 class Equipo1(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = mago_personaje
         self.rect = self.image.get_rect(topleft=(x, y))
-
 class Equipo2(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = mago_personaje
         self.rect = self.image.get_rect(topleft=(x, y))
-
 equipo1 = Equipo1(510, 20)
 equipo2 = Equipo2(420, 20)
 grupo_equipo = pygame.sprite.Group(equipo1, equipo2)
-
 # === Estado del juego ===
 pantalla_actual = "menu"
 mostrando_pregunta = False
@@ -212,10 +190,8 @@ botones_opciones = []
 temporizador_retro = 0
 tiempo_inicio_pregunta = 0
 TIEMPO_LIMITE = 60000  # 60 segundos en milisegundos
-
 # ⚔️ Sistema de turnos
 turno_actual = "equipo1"  # Empieza el equipo 1
-
 # === Estado del modo dibujo ===
 dibujando = False
 superficie_dibujo = None
@@ -224,22 +200,18 @@ grosor_dibujo = 5
 ultima_pos = None
 tiempo_inicio_dibujo = 0
 mostrando_validacion_dibujo = False
-
 # === Estado del modo organizar ===
 elementos_organizar = []
 elementos_seleccionados = []  # Guarda índices seleccionados para intercambiar
 tiempo_inicio_organizar = 0
 mostrando_validacion_organizar = False
-
 # === Lista para evitar repeticiones de preguntas ===
 preguntas_usadas = set()
-
 # === Fuentes ===
 fuente_pregunta = pygame.font.SysFont("Arial", 36, bold=True)
 fuente_opciones = pygame.font.SysFont("Arial", 30)
 fuente_ayuda = pygame.font.SysFont("Arial", 24)
 fuente_tiempo = pygame.font.SysFont("Arial", 36, bold=True)
-
 # === Funciones de ayuda para dibujar recuadros uniformes y texto envuelto ===
 def wrap_text(font, text, max_width):
     """Devuelve una lista de líneas que caben en max_width (en px) usando font.size()."""
@@ -258,7 +230,6 @@ def wrap_text(font, text, max_width):
     if current:
         lines.append(current)
     return lines
-
 def draw_wrapped_rect(surface, text, font, center_x, y, bar_width,
                       bg_color=(50,50,50), text_color=BLANCO,
                       padding_x=30, padding_y=18, border_radius=15):
@@ -274,19 +245,16 @@ def draw_wrapped_rect(surface, text, font, center_x, y, bar_width,
         txt_rect = txt_surf.get_rect(center=(center_x, y + padding_y + i*line_height + line_height//2))
         surface.blit(txt_surf, txt_rect)
     return rect
-
 # === NUEVA FUNCIÓN: calcular altura real del texto envuelto ===
 def get_text_height(font, text, max_width):
     """Devuelve la altura total en px que ocupa el texto envuelto."""
     lines = wrap_text(font, text, max_width)
     line_height = font.get_height()
     return len(lines) * line_height
-
 # === Función para cambiar turno ===
 def cambiar_turno():
     global turno_actual
     turno_actual = "equipo2" if turno_actual == "equipo1" else "equipo1"
-
 # === Bucle principal ===
 corriendo = True
 while corriendo:
@@ -296,7 +264,6 @@ while corriendo:
     rect_terminar = None
     if pantalla_actual in ["ajustes", "creditos", "jugar", "mago", "dibujar"]:
         rect_boton_salir = pygame.Rect(ventana.get_width() - 150, 10, 120, 100)
-
     # === Eventos ===
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -320,7 +287,6 @@ while corriendo:
                 mostrando_retroalimentacion = False
                 if pantalla_actual != "dibujar":
                     superficie_dibujo = None
-
             # Menú principal
             elif pantalla_actual == "menu":
                 if rect_ajustes.collidepoint(mouse_pos):
@@ -333,7 +299,6 @@ while corriendo:
                     webbrowser.open(url_youtube)
                 elif rect_mago.collidepoint(mouse_pos):
                     pantalla_actual = "mago"
-
             # Ajustes: controles de audio
             elif pantalla_actual == "ajustes":
                 if musica_activa and rect_mute.collidepoint(mouse_pos):
@@ -352,7 +317,6 @@ while corriendo:
                     if sonido_fondo:
                         vol = sonido_fondo.get_volume()
                         sonido_fondo.set_volume(max(0.0, vol - 0.1))
-
             # Jugar: mostrar pregunta al hacer clic en círculo
             elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circ in circulos:
@@ -362,47 +326,40 @@ while corriendo:
                     if dist_click <= r:
                         materia_original = circ["materia"]
                         materia_real = alias_materias.get(materia_original, materia_original)
-
                         # Intentar obtener una pregunta no repetida (máximo 10 intentos)
                         pregunta_data = None
                         intentos = 0
                         max_intentos = 10
-
                         while intentos < max_intentos:
                             temp_pregunta = obtener_pregunta_aleatoria(materia_real)
                             if not temp_pregunta:
                                 break
-
                             # Generar clave única: si tiene 'id', usarlo; si no, usar el texto de la pregunta
                             clave_unica = temp_pregunta.get("id") or temp_pregunta.get("pregunta")
                             if not clave_unica:
                                 print("⚠️ Pregunta sin identificador único:", temp_pregunta)
                                 pregunta_data = temp_pregunta
                                 break
-
                             if clave_unica not in preguntas_usadas:
                                 pregunta_data = temp_pregunta
                                 preguntas_usadas.add(clave_unica)  # ¡La marcamos como usada!
                                 break
-
                             intentos += 1
-
                         if not pregunta_data:
                             print(f"⚠️ No se pudo obtener una pregunta NO repetida para {materia_real} después de {max_intentos} intentos.")
-
-
                         if pregunta_data:
+                            # === Asegurar compatibilidad con imágenes ===
+                            if "imagen" not in pregunta_data:
+                                pregunta_data["imagen"] = ""
                             if not all(k in pregunta_data for k in ("pregunta",)):
                                 print("Pregunta mal formada (falta 'pregunta'):", pregunta_data)
                                 break
-
                             # Modo dibujo
                             if pregunta_data.get("actividad") == "dibujar":
                                 pregunta_data["materia"] = materia_original
                                 mostrando_pregunta = True
                                 botones_opciones = []
                                 tiempo_inicio_pregunta = pygame.time.get_ticks()
-
                             # Modo organizar
                             elif pregunta_data.get("actividad") == "organizar":
                                 if "elementos" not in pregunta_data and "opciones" in pregunta_data:
@@ -417,7 +374,6 @@ while corriendo:
                                 mostrando_pregunta = True
                                 botones_opciones = []
                                 tiempo_inicio_organizar = pygame.time.get_ticks()
-
                             # Modo selección normal
                             else:
                                 if not all(k in pregunta_data for k in ("opciones", "respuesta")):
@@ -430,18 +386,15 @@ while corriendo:
                         else:
                             print(f"⚠️  No se pudo cargar pregunta para: {materia_real}")
                         break
-
             # Entrar al modo dibujo (si se hace clic en cualquier parte)
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "dibujar":
                 pantalla_actual = "dibujar"
                 mostrando_pregunta = False
                 tiempo_inicio_dibujo = pygame.time.get_ticks()
-
             # Manejar clics en modo organizar
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
                 center_x = ANCHO // 2
                 bar_width = min(1100, int(ANCHO * 0.8))
-
                 # Recalcular la posición inicial basada en la altura de la pregunta
                 temp_rect = draw_wrapped_rect(
                     pygame.Surface((1,1)),
@@ -456,17 +409,22 @@ while corriendo:
                     padding_y=20,
                     border_radius=18
                 )
-                y_elemento = temp_rect.bottom + 30  # ←←← IGUAL QUE EN RENDER
-
+                # === Ajustar posición si hay imagen ===
+                extra_y = 0
+                if pregunta_data.get("imagen") and pregunta_data["imagen"].strip():
+                    try:
+                        img_temp = pygame.image.load(pregunta_data["imagen"]).convert_alpha()
+                        extra_y = img_temp.get_height() + 40
+                    except:
+                        pass
+                y_elemento = temp_rect.bottom + extra_y + 30
                 option_min_height = 60
                 option_padding = 20
                 clic_procesado = False
-
                 for i, elemento in enumerate(elementos_organizar):
                     text_height = get_text_height(fuente_opciones, f"{i+1}. {elemento}", bar_width - 60)
                     actual_height = max(option_min_height, text_height + 20)
                     rect_boton = pygame.Rect(center_x - bar_width//2, y_elemento, bar_width, actual_height)
-
                     if rect_boton.collidepoint(mouse_pos):
                         if len(elementos_seleccionados) == 0:
                             elementos_seleccionados.append(i)
@@ -477,9 +435,7 @@ while corriendo:
                             elementos_seleccionados = []
                         clic_procesado = True
                         break
-
                     y_elemento += actual_height + option_padding
-
                 if not clic_procesado:
                     # Botón "TERMINAR" para validar
                     boton_terminar_org = fuente_pregunta.render("TERMINAR", True, BLANCO)
@@ -501,34 +457,29 @@ while corriendo:
                         else:
                             mensaje_retro = "Incorrecto"
                             color_retro = (255, 0, 0)
-
                         cambiar_turno()
                         mostrando_pregunta = False
                         mostrando_retroalimentacion = True
                         temporizador_retro = pygame.time.get_ticks()
                         elementos_organizar = []
                         elementos_seleccionados = []
-
             # Manejar clics en modo dibujo 
             elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
                 boton_terminar_texto = fuente_pregunta.render("TERMINAR", True, BLANCO)
                 rect_terminar = boton_terminar_texto.get_rect(center=(ANCHO // 2, ALTO - 80))
                 if rect_terminar.collidepoint(mouse_pos):
                     mostrando_validacion_dibujo = True
-                    
                 else:
                     dibujando = True
                     if superficie_dibujo:
                         pygame.draw.circle(superficie_dibujo, color_dibujo, evento.pos, grosor_dibujo // 2)
                     ultima_pos = evento.pos
-
             # Manejar clics en validación de dibujo
             elif pantalla_actual == "dibujar" and mostrando_validacion_dibujo:
                 boton_correcto = fuente_pregunta.render("CORRECTO", True, BLANCO)
                 rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 200))
                 boton_incorrecto = fuente_pregunta.render("INCORRECTO", True, BLANCO)
                 rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 200))
-
                 if rect_correcto.collidepoint(mouse_pos):
                     try:
                         idx_actual = orden_antihorario.index(pregunta_data["materia"])
@@ -545,14 +496,12 @@ while corriendo:
                     superficie_dibujo = None
                     ultima_pos = None
                     mostrando_validacion_dibujo = False
-                    
                 elif rect_incorrecto.collidepoint(mouse_pos):
                     cambiar_turno()
                     pantalla_actual = "jugar"
                     superficie_dibujo = None
                     ultima_pos = None
                     mostrando_validacion_dibujo = False
-
             # Responder con clic en opción 
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") not in ["dibujar", "organizar"]:
                 for rect_boton, opcion_idx in botones_opciones:
@@ -586,12 +535,10 @@ while corriendo:
                         temporizador_retro = pygame.time.get_ticks()
                         cambiar_turno()
                         break
-
         elif evento.type == pygame.MOUSEBUTTONUP and evento.button == 1:
             if pantalla_actual == "dibujar":
                 dibujando = False
                 ultima_pos = None
-
         elif evento.type == pygame.MOUSEMOTION:
             if pantalla_actual == "dibujar" and dibujando and superficie_dibujo:
                 if ultima_pos:
@@ -599,7 +546,6 @@ while corriendo:
                 else:
                     pygame.draw.circle(superficie_dibujo, color_dibujo, evento.pos, grosor_dibujo // 2)
                 ultima_pos = evento.pos
-
     # TEMPORIZADOR:pregunta normal
     if mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") not in ["dibujar", "organizar"]:
         tiempo_actual = pygame.time.get_ticks()
@@ -611,14 +557,12 @@ while corriendo:
             mostrando_retroalimentacion = True
             temporizador_retro = pygame.time.get_ticks()
             cambiar_turno()
-
     # TEMPORIZADOR: modo dibujo
     if pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
         tiempo_actual = pygame.time.get_ticks()
         tiempo_transcurrido = tiempo_actual - tiempo_inicio_dibujo
         if tiempo_transcurrido >= TIEMPO_LIMITE:
             mostrando_validacion_dibujo = True
-
     # TEMPORIZADOR:modo organizar
     if mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
         tiempo_actual = pygame.time.get_ticks()
@@ -640,14 +584,12 @@ while corriendo:
             else:
                 mensaje_retro = "Tiempo agotado - Incorrecto"
                 color_retro = (255, 0, 0)
-
             cambiar_turno()
             mostrando_pregunta = False
             mostrando_retroalimentacion = True
             temporizador_retro = pygame.time.get_ticks()
             elementos_organizar = []
             elementos_seleccionados = []
-
     # === Renderizado ===
     if pantalla_actual == "menu":
         ventana.blit(fondo, (-50, -150))
@@ -663,7 +605,6 @@ while corriendo:
         else:
             ventana.blit(personaje_interfaz, rect_mago.topleft)
         ventana.blit(logo_juego, (400, 40))
-
     elif pantalla_actual == "ajustes":
         ventana.blit(fondo, (-50, -150))
         titulo = pygame.font.SysFont(None, 60).render("AJUSTES", True, NEGRO)
@@ -676,7 +617,6 @@ while corriendo:
             ventana.blit(boton_unmute_hover if rect_unmute.collidepoint(mouse_pos) else boton_unmute, rect_unmute.topleft)
         ventana.blit(boton_vol_up_hover if rect_vol_up.collidepoint(mouse_pos) else boton_vol_up, rect_vol_up.topleft)
         ventana.blit(boton_vol_down_hover if rect_vol_down.collidepoint(mouse_pos) else boton_vol_down, rect_vol_down.topleft)
-
     elif pantalla_actual == "jugar":
         ventana.blit(tablero, (0, 0))
         color_turno = ROJO_MAT if turno_actual == "equipo1" else MORADO_IN
@@ -694,22 +634,18 @@ while corriendo:
         grupo_equipo.draw(ventana)
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
-
         if mostrando_pregunta and pregunta_data:
             # overlay semitransparente
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
             overlay.fill(NEGRO)
             ventana.blit(overlay, (0, 0))
-
             # título de materia
             titulo_materia = fuente_pregunta.render(f"{pregunta_data['materia']}", True, materias.get(pregunta_data['materia'], BLANCO))
             ventana.blit(titulo_materia, (ANCHO // 2 - titulo_materia.get_width() // 2, 40))
-
             # Parámetros de anchura uniforme para pregunta y opciones
             center_x = ANCHO // 2
             bar_width = min(1100, int(ANCHO * 0.8))  # ancho fijo relativo a la ventana
-
             # DIBUJAR PREGUNTA (con ajuste de líneas)
             pregunta_rect = draw_wrapped_rect(
                 ventana,
@@ -724,28 +660,45 @@ while corriendo:
                 padding_y=20,
                 border_radius=18
             )
-
+            # === CARGAR Y MOSTRAR IMAGEN SI EXISTE ===
+            extra_y = 0
+            if pregunta_data.get("imagen") and pregunta_data["imagen"].strip():
+                try:
+                    img = pygame.image.load(pregunta_data["imagen"]).convert_alpha()
+                    # Escalar si es muy grande
+                    max_img_width = bar_width - 40
+                    max_img_height = 400
+                    img_ancho, img_alto = img.get_size()
+                    if img_ancho > max_img_width or img_alto > max_img_height:
+                        escala = min(max_img_width / img_ancho, max_img_height / img_alto)
+                        nuevo_tam = (int(img_ancho * escala), int(img_alto * escala))
+                        img = pygame.transform.scale(img, nuevo_tam)
+                        img_alto = nuevo_tam[1]
+                    else:
+                        img_alto = img.get_height()
+                    # Dibujar la imagen
+                    img_y = pregunta_rect.bottom + 20
+                    ventana.blit(img, (center_x - img.get_width() // 2, img_y))
+                    extra_y = img_alto + 40
+                except Exception as e:
+                    print(f"❌ ERROR al cargar imagen: {pregunta_data['imagen']} - {e}")
             # Modo dibujo
             if pregunta_data.get("actividad") == "dibujar":
                 mensaje = fuente_ayuda.render("Haz clic en cualquier lugar para entrar al modo dibujo", True, (100, 200, 255))
                 ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, ALTO - 100))
-
             # Modo organizar
             elif pregunta_data.get("actividad") == "organizar":
-                y_elemento = pregunta_rect.bottom + 30  # ←←← AHORA DINÁMICO
+                y_elemento = pregunta_rect.bottom + extra_y + 30
                 option_min_height = 60
                 option_padding = 20
-
                 for i, elemento in enumerate(elementos_organizar):
                     text_height = get_text_height(fuente_opciones, f"{i+1}. {elemento}", bar_width - 60)
                     actual_height = max(option_min_height, text_height + 20)
                     rect_boton = pygame.Rect(center_x - bar_width//2, y_elemento, bar_width, actual_height)
-
                     is_hover = rect_boton.collidepoint(mouse_pos)
                     is_selected = (i in elementos_seleccionados)
                     color_fondo = (120, 120, 255) if is_selected else (100, 100, 100) if is_hover else (50, 50, 50)
                     pygame.draw.rect(ventana, color_fondo, rect_boton, border_radius=12)
-
                     lines = wrap_text(fuente_opciones, f"{i+1}. {elemento}", bar_width - 60)
                     for j, line in enumerate(lines):
                         text_surf = fuente_opciones.render(line, True, BLANCO)
@@ -754,46 +707,63 @@ while corriendo:
                             top=rect_boton.top + 10 + j * fuente_opciones.get_height()
                         )
                         ventana.blit(text_surf, text_rect)
-
                     y_elemento += actual_height + option_padding
-
                 # Botón "TERMINAR"
                 boton_terminar_org = fuente_pregunta.render("TERMINAR", True, BLANCO)
                 rect_terminar_org = boton_terminar_org.get_rect(center=(ANCHO // 2, ALTO - 80))
                 color_boton = (200, 0, 0) if rect_terminar_org.collidepoint(mouse_pos) else (255, 0, 0)
                 pygame.draw.rect(ventana, color_boton, rect_terminar_org.inflate(40, 20), border_radius=15)
                 ventana.blit(boton_terminar_org, rect_terminar_org)
-
                 # Mostrar tiempo restante
                 tiempo_actual = pygame.time.get_ticks()
                 tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_organizar)) // 1000)
                 texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
                 ventana.blit(texto_tiempo, (1150, 0))
-
-            # Modo selección normal
+            # Modo selección normal → CUADRÍCULA 2x2 SOLO SI HAY IMAGEN
             else:
-                y_opcion = pregunta_rect.bottom + 30
-                botones_opciones.clear()
-                option_height = 60
-                for i, opcion in enumerate(pregunta_data["opciones"]):
-                    rect_boton = pygame.Rect(center_x - bar_width//2, y_opcion, bar_width, option_height)
-                    is_hover = rect_boton.collidepoint(mouse_pos)
-                    color_fondo = (120, 120, 120) if is_hover else (60, 60, 60)
-                    pygame.draw.rect(ventana, color_fondo, rect_boton, border_radius=12)
-                    texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
-                    ventana.blit(texto, texto.get_rect(center=rect_boton.center))
-                    botones_opciones.append((rect_boton, i))
-                    y_opcion += option_height + 20
-
-                mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
-                ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 10))
-
+                y_opcion_base = pregunta_rect.bottom + extra_y + 30
+                # Verificar si hay imagen
+                if pregunta_data.get("imagen") and pregunta_data["imagen"].strip():
+                    # === MOSTRAR EN CUADRÍCULA 2x2 (SOLO SI HAY IMAGEN) ===
+                    option_width = (bar_width - 60) // 2  # Dos columnas con margen
+                    option_height = 70
+                    spacing = 20
+                    botones_opciones.clear()
+                    for i, opcion in enumerate(pregunta_data["opciones"]):
+                        col = i % 2
+                        row = i // 2
+                        x_opcion = center_x - option_width - spacing//2 + col * (option_width + spacing)
+                        y_opcion = y_opcion_base + row * (option_height + spacing)
+                        rect_boton = pygame.Rect(x_opcion, y_opcion, option_width, option_height)
+                        is_hover = rect_boton.collidepoint(mouse_pos)
+                        color_fondo = (120, 120, 120) if is_hover else (60, 60, 60)
+                        pygame.draw.rect(ventana, color_fondo, rect_boton, border_radius=12)
+                        texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
+                        ventana.blit(texto, texto.get_rect(center=rect_boton.center))
+                        botones_opciones.append((rect_boton, i))
+                    mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
+                    ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion_base + 2*(option_height + spacing) + 10))
+                else:
+                    # === MOSTRAR EN LISTA VERTICAL (SI NO HAY IMAGEN) ===
+                    y_opcion = y_opcion_base
+                    botones_opciones.clear()
+                    option_height = 60
+                    for i, opcion in enumerate(pregunta_data["opciones"]):
+                        rect_boton = pygame.Rect(center_x - bar_width//2, y_opcion, bar_width, option_height)
+                        is_hover = rect_boton.collidepoint(mouse_pos)
+                        color_fondo = (120, 120, 120) if is_hover else (60, 60, 60)
+                        pygame.draw.rect(ventana, color_fondo, rect_boton, border_radius=12)
+                        texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
+                        ventana.blit(texto, texto.get_rect(center=rect_boton.center))
+                        botones_opciones.append((rect_boton, i))
+                        y_opcion += option_height + 20
+                    mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
+                    ventana.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_opcion + 10))
                 # Mostrar tiempo restante
                 tiempo_actual = pygame.time.get_ticks()
                 tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_pregunta)) // 1000)
                 texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
                 ventana.blit(texto_tiempo, (1150, 0))
-
         if mostrando_retroalimentacion:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
@@ -805,14 +775,12 @@ while corriendo:
             ventana.blit(texto, rect_texto)
             instruccion = fuente_ayuda.render("Cerrando en 1 segundo...", True, BLANCO)
             ventana.blit(instruccion, (ANCHO // 2 - instruccion.get_width() // 2, ALTO // 2 + 60))
-
     elif pantalla_actual == "creditos":
         ventana.blit(fondo, (-50, -150))
         texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
-
     elif pantalla_actual == "mago":
         ventana.fill(CELESTE)
         font = pygame.font.SysFont(None, 60)
@@ -822,12 +790,10 @@ while corriendo:
         ventana.blit(texto2, (ANCHO // 2 - texto2.get_width() // 2, ALTO // 2))
         if rect_boton_salir:
             ventana.blit(boton_salir_hover if rect_boton_salir.collidepoint(mouse_pos) else boton_salir, rect_boton_salir.topleft)
-
     elif pantalla_actual == "dibujar":
         if superficie_dibujo is None:
             superficie_dibujo = pygame.Surface((ANCHO, ALTO))
             superficie_dibujo.fill(BLANCO)
-
         if not mostrando_validacion_dibujo:
             ventana.fill(BLANCO)
             ventana.blit(superficie_dibujo, (0, 0))
@@ -842,7 +808,6 @@ while corriendo:
             color_boton = (200, 0, 0) if rect_terminar.collidepoint(mouse_pos) else (255, 0, 0)
             pygame.draw.rect(ventana, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
             ventana.blit(boton_terminar_texto, rect_terminar)
-
         else:
             texto_titulo = fuente_pregunta.render("Considera que la respuesta es correcta", True, ROJO_MAT)
             ventana.blit(texto_titulo, texto_titulo.get_rect(center=(ANCHO // 2, ALTO // 2 - 80)))
@@ -856,13 +821,10 @@ while corriendo:
             color_incorrecto = (200, 0, 0) if rect_incorrecto.collidepoint(mouse_pos) else (255, 0, 0)
             pygame.draw.rect(ventana, color_incorrecto, rect_incorrecto.inflate(40, 30), border_radius=15)
             ventana.blit(boton_incorrecto, rect_incorrecto)
-
     # === Cerrar retroalimentación después de 1 segundo ===
     if mostrando_retroalimentacion and pygame.time.get_ticks() - temporizador_retro > 1000:
         mostrando_retroalimentacion = False
-
     # === Actualizar pantalla y limitar FPS ===
     pygame.display.flip()
-
 pygame.quit()
 sys.exit()
