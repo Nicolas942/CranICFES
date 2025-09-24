@@ -275,6 +275,13 @@ def draw_wrapped_rect(surface, text, font, center_x, y, bar_width,
         surface.blit(txt_surf, txt_rect)
     return rect
 
+# === NUEVA FUNCIÓN: calcular altura real del texto envuelto ===
+def get_text_height(font, text, max_width):
+    """Devuelve la altura total en px que ocupa el texto envuelto."""
+    lines = wrap_text(font, text, max_width)
+    line_height = font.get_height()
+    return len(lines) * line_height
+
 # === Función para cambiar turno ===
 def cambiar_turno():
     global turno_actual
@@ -382,10 +389,7 @@ while corriendo:
 
                         if not pregunta_data:
                             print(f"⚠️ No se pudo obtener una pregunta NO repetida para {materia_real} después de {max_intentos} intentos.")
-                            # OPCIONAL: Reiniciar lista si se agotan todas las preguntas
-                            # print(f"🔄 Reiniciando lista de preguntas usadas para {materia_real}")
-                            # preguntas_usadas.clear()
-                            # pregunta_data = obtener_pregunta_aleatoria(materia_real)
+
 
                         if pregunta_data:
                             if not all(k in pregunta_data for k in ("pregunta",)):
@@ -433,54 +437,77 @@ while corriendo:
                 mostrando_pregunta = False
                 tiempo_inicio_dibujo = pygame.time.get_ticks()
 
-            # Manejar clics en modo organizar (usando rects fijos)
+            # Manejar clics en modo organizar
             elif mostrando_pregunta and pregunta_data and pregunta_data.get("actividad") == "organizar":
-                # usamos el mismo ancho/base que en render para detectar clicks
                 center_x = ANCHO // 2
                 bar_width = min(1100, int(ANCHO * 0.8))
-                option_height = 60
-                y_elemento = 220
+
+                # Recalcular la posición inicial basada en la altura de la pregunta
+                temp_rect = draw_wrapped_rect(
+                    pygame.Surface((1,1)),
+                    pregunta_data["pregunta"],
+                    fuente_pregunta,
+                    center_x,
+                    100,
+                    bar_width,
+                    bg_color=(40, 40, 40),
+                    text_color=BLANCO,
+                    padding_x=40,
+                    padding_y=20,
+                    border_radius=18
+                )
+                y_elemento = temp_rect.bottom + 30  # ←←← IGUAL QUE EN RENDER
+
+                option_min_height = 60
+                option_padding = 20
+                clic_procesado = False
+
                 for i, elemento in enumerate(elementos_organizar):
-                    rect_boton = pygame.Rect(center_x - bar_width//2, y_elemento, bar_width, option_height)
+                    text_height = get_text_height(fuente_opciones, f"{i+1}. {elemento}", bar_width - 60)
+                    actual_height = max(option_min_height, text_height + 20)
+                    rect_boton = pygame.Rect(center_x - bar_width//2, y_elemento, bar_width, actual_height)
+
                     if rect_boton.collidepoint(mouse_pos):
                         if len(elementos_seleccionados) == 0:
                             elementos_seleccionados.append(i)
-                            
                         elif len(elementos_seleccionados) == 1:
                             idx1 = elementos_seleccionados[0]
                             idx2 = i
                             elementos_organizar[idx1], elementos_organizar[idx2] = elementos_organizar[idx2], elementos_organizar[idx1]
                             elementos_seleccionados = []
+                        clic_procesado = True
                         break
-                    y_elemento += option_height + 20
 
-                # Botón "TERMINAR" para validar
-                boton_terminar_org = fuente_pregunta.render("TERMINAR", True, BLANCO)
-                rect_terminar_org = boton_terminar_org.get_rect(center=(ANCHO // 2, ALTO - 80))
-                if rect_terminar_org.collidepoint(mouse_pos):
-                    if elementos_organizar == pregunta_data["respuesta"]:
-                        mensaje_retro = "¡Correcto!"
-                        color_retro = (0, 255, 0)
-                        try:
-                            idx_actual = orden_antihorario.index(pregunta_data["materia"])
-                        except ValueError:
-                            idx_actual = 0
-                        siguiente_materia = orden_antihorario[(idx_actual + 1) % len(orden_antihorario)]
-                        equipo_actual = equipo1 if turno_actual == "equipo1" else equipo2
-                        for c in circulos:
-                            if c["materia"] == siguiente_materia:
-                                equipo_actual.rect.center = c["centro"]
-                                break
-                    else:
-                        mensaje_retro = "Incorrecto"
-                        color_retro = (255, 0, 0)
+                    y_elemento += actual_height + option_padding
 
-                    cambiar_turno()
-                    mostrando_pregunta = False
-                    mostrando_retroalimentacion = True
-                    temporizador_retro = pygame.time.get_ticks()
-                    elementos_organizar = []
-                    elementos_seleccionados = []
+                if not clic_procesado:
+                    # Botón "TERMINAR" para validar
+                    boton_terminar_org = fuente_pregunta.render("TERMINAR", True, BLANCO)
+                    rect_terminar_org = boton_terminar_org.get_rect(center=(ANCHO // 2, ALTO - 80))
+                    if rect_terminar_org.collidepoint(mouse_pos):
+                        if elementos_organizar == pregunta_data["respuesta"]:
+                            mensaje_retro = "¡Correcto!"
+                            color_retro = (0, 255, 0)
+                            try:
+                                idx_actual = orden_antihorario.index(pregunta_data["materia"])
+                            except ValueError:
+                                idx_actual = 0
+                            siguiente_materia = orden_antihorario[(idx_actual + 1) % len(orden_antihorario)]
+                            equipo_actual = equipo1 if turno_actual == "equipo1" else equipo2
+                            for c in circulos:
+                                if c["materia"] == siguiente_materia:
+                                    equipo_actual.rect.center = c["centro"]
+                                    break
+                        else:
+                            mensaje_retro = "Incorrecto"
+                            color_retro = (255, 0, 0)
+
+                        cambiar_turno()
+                        mostrando_pregunta = False
+                        mostrando_retroalimentacion = True
+                        temporizador_retro = pygame.time.get_ticks()
+                        elementos_organizar = []
+                        elementos_seleccionados = []
 
             # Manejar clics en modo dibujo 
             elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
@@ -705,18 +732,30 @@ while corriendo:
 
             # Modo organizar
             elif pregunta_data.get("actividad") == "organizar":
-                # Mostrar elementos con rects uniformes y detectar hover/selección
-                y_elemento = pregunta_rect.bottom + 30
-                option_height = 60
+                y_elemento = pregunta_rect.bottom + 30  # ←←← AHORA DINÁMICO
+                option_min_height = 60
+                option_padding = 20
+
                 for i, elemento in enumerate(elementos_organizar):
-                    rect_boton = pygame.Rect(center_x - bar_width//2, y_elemento, bar_width, option_height)
+                    text_height = get_text_height(fuente_opciones, f"{i+1}. {elemento}", bar_width - 60)
+                    actual_height = max(option_min_height, text_height + 20)
+                    rect_boton = pygame.Rect(center_x - bar_width//2, y_elemento, bar_width, actual_height)
+
                     is_hover = rect_boton.collidepoint(mouse_pos)
                     is_selected = (i in elementos_seleccionados)
                     color_fondo = (120, 120, 255) if is_selected else (100, 100, 100) if is_hover else (50, 50, 50)
                     pygame.draw.rect(ventana, color_fondo, rect_boton, border_radius=12)
-                    texto = fuente_opciones.render(f"{i+1}. {elemento}", True, BLANCO)
-                    ventana.blit(texto, texto.get_rect(center=rect_boton.center))
-                    y_elemento += option_height + 20
+
+                    lines = wrap_text(fuente_opciones, f"{i+1}. {elemento}", bar_width - 60)
+                    for j, line in enumerate(lines):
+                        text_surf = fuente_opciones.render(line, True, BLANCO)
+                        text_rect = text_surf.get_rect(
+                            centerx=rect_boton.centerx,
+                            top=rect_boton.top + 10 + j * fuente_opciones.get_height()
+                        )
+                        ventana.blit(text_surf, text_rect)
+
+                    y_elemento += actual_height + option_padding
 
                 # Botón "TERMINAR"
                 boton_terminar_org = fuente_pregunta.render("TERMINAR", True, BLANCO)
