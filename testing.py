@@ -197,12 +197,14 @@ fuente_tiempo = pygame.font.SysFont("Arial", 36, bold=True)
 # ─────────────────────────────────────────────────────────────
 def envolver_texto(fuente, texto, ancho_maximo):
     """Divide el texto en líneas que caben en el ancho máximo."""
+    if fuente is None or not texto.strip():
+        return [texto] if texto.strip() else [""]
     palabras = texto.split(" ")
     lineas = []
     actual = ""
     for palabra in palabras:
         prueba = actual + (" " if actual else "") + palabra
-        if fuente.size(prueba)[0] <= ancho_maximo:
+        if fuente.size(prueba)[1] <= ancho_maximo:
             actual = prueba
         else:
             if actual:
@@ -243,6 +245,15 @@ def cambiar_turno():
 # Bucle principal
 # ─────────────────────────────────────────────────────────────
 ejecutando = True
+musica_activa = True
+sonido_fondo = None        
+try:
+    sonido_fondo = pygame.mixer.Sound("Sonidos/Fondo.mp3")
+    pygame.mixer.Sound.play(sonido_fondo, loops=-1)
+    musica_activa = True
+except pygame.error:
+    print("No se pudo cargar el sonido de fondo")
+
 while ejecutando:
     reloj.tick(60)
     pos_mouse = pygame.mouse.get_pos()
@@ -258,7 +269,6 @@ while ejecutando:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             ejecutando = False
-
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
                 if mostrando_pregunta or mostrando_retroalimentacion:
@@ -266,12 +276,10 @@ while ejecutando:
                     mostrando_retroalimentacion = False
                 else:
                     ejecutando = False
-
         elif evento.type == pygame.VIDEORESIZE:
             pantalla = pygame.display.set_mode((evento.w, evento.h), pygame.RESIZABLE)
             if pantalla_actual == "dibujar":
                 superficie_dibujo = None
-
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             # Botón de salir
             if rect_boton_salir and rect_boton_salir.collidepoint(pos_mouse):
@@ -280,8 +288,7 @@ while ejecutando:
                 mostrando_retroalimentacion = False
                 if pantalla_actual != "dibujar":
                     superficie_dibujo = None
-
-            # Menú principal
+            
             elif pantalla_actual == "menu":
                 if rect_ajustes.collidepoint(pos_mouse):
                     pantalla_actual = "ajustes"
@@ -293,26 +300,26 @@ while ejecutando:
                     webbrowser.open(URL_YOUTUBE)
                 elif rect_mago.collidepoint(pos_mouse):
                     pantalla_actual = "mago"
-
-            # Ajustes de audio
+            
             elif pantalla_actual == "ajustes":
-                global musica_activa, sonido_fondo
                 if musica_activa and rect_mute.collidepoint(pos_mouse):
-                    pygame.mixer.Sound.stop(sonido_fondo)
+                    # Silenciar
+                    if sonido_fondo:
+                        pygame.mixer.Sound.stop(sonido_fondo)
                     musica_activa = False
                 elif not musica_activa and rect_unmute.collidepoint(pos_mouse):
-                    try:
-                        sonido_fondo = pygame.mixer.Sound("Sonidos/Fondo.mp3")
+                    # Reanudar
+                    if sonido_fondo:
                         pygame.mixer.Sound.play(sonido_fondo, loops=-1)
                         musica_activa = True
-                    except pygame.error:
-                        print("No se pudo cargar el sonido de fondo")
+                    else:
+                        print("⚠️ No se pudo cargar el sonido de fondo")
                 elif rect_vol_up.collidepoint(pos_mouse) and sonido_fondo:
                     sonido_fondo.set_volume(min(1.0, sonido_fondo.get_volume() + 0.1))
                 elif rect_vol_down.collidepoint(pos_mouse) and sonido_fondo:
                     sonido_fondo.set_volume(max(0.0, sonido_fondo.get_volume() - 0.1))
-
-            # Jugar: seleccionar círculo
+        
+            
             elif pantalla_actual == "jugar" and not mostrando_pregunta and not mostrando_retroalimentacion:
                 for circulo in circulos:
                     cx, cy = circulo["centro"]
@@ -334,14 +341,12 @@ while ejecutando:
                                 preguntas_usadas.add(clave)
                                 break
                             intentos += 1
-
                         if datos_pregunta:
                             if "imagen" not in datos_pregunta:
                                 datos_pregunta["imagen"] = ""
                             if not all(k in datos_pregunta for k in ("pregunta",)):
                                 print("⚠️ Pregunta mal formada (falta 'pregunta'):", datos_pregunta)
                                 break
-
                             datos_pregunta["materia"] = materia_original
                             if datos_pregunta.get("actividad") == "dibujar":
                                 mostrando_pregunta = True
@@ -368,13 +373,11 @@ while ejecutando:
                         else:
                             print(f"⚠️ No se pudo cargar pregunta para: {materia_real}")
                         break
-
             # Modo dibujo: entrar al modo
             elif mostrando_pregunta and datos_pregunta and datos_pregunta.get("actividad") == "dibujar":
                 pantalla_actual = "dibujar"
                 mostrando_pregunta = False
                 tiempo_inicio_dibujo = pygame.time.get_ticks()
-
             # Modo organizar: intercambiar elementos
             elif mostrando_pregunta and datos_pregunta and datos_pregunta.get("actividad") == "organizar":
                 centro_x = ANCHO // 2
@@ -409,7 +412,6 @@ while ejecutando:
                         clic_procesado = True
                         break
                     y_elemento += altura_real + ESPACIO_OPCION
-
                 if not clic_procesado:
                     texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
                     rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
@@ -434,7 +436,6 @@ while ejecutando:
                         temporizador_retro = pygame.time.get_ticks()
                         elementos_organizar = []
                         indices_seleccionados = []
-
             # Modo dibujo: terminar
             elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
                 texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
@@ -446,7 +447,6 @@ while ejecutando:
                     if superficie_dibujo:
                         pygame.draw.circle(superficie_dibujo, NEGRO, evento.pos, 2)
                     ultima_pos = evento.pos
-
             # Validación dibujo
             elif pantalla_actual == "dibujar" and mostrando_validacion_dibujo:
                 rect_correcto = fuente_pregunta.render("CORRECTO", True, BLANCO).get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 200))
@@ -471,7 +471,6 @@ while ejecutando:
                     pantalla_actual = "jugar"
                     superficie_dibujo = None
                     mostrando_validacion_dibujo = False
-
             # Respuesta en modo selección
             elif mostrando_pregunta and datos_pregunta and datos_pregunta.get("actividad") not in ["dibujar", "organizar"]:
                 for rect_boton, idx_opcion in botones_opciones:
@@ -499,12 +498,10 @@ while ejecutando:
                         mostrando_retroalimentacion = True
                         temporizador_retro = pygame.time.get_ticks()
                         break
-
         elif evento.type == pygame.MOUSEBUTTONUP and evento.button == 1:
             if pantalla_actual == "dibujar":
                 modo_dibujo_activo = False
                 ultima_pos = None
-
         elif evento.type == pygame.MOUSEMOTION:
             if pantalla_actual == "dibujar" and modo_dibujo_activo and superficie_dibujo:
                 if ultima_pos:
@@ -548,7 +545,6 @@ while ejecutando:
                 temporizador_retro = tiempo_actual
                 elementos_organizar = []
                 indices_seleccionados = []
-
     if pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
         if tiempo_actual - tiempo_inicio_dibujo >= TIEMPO_LIMITE:
             mostrando_validacion_dibujo = True
@@ -577,13 +573,12 @@ while ejecutando:
             pantalla.blit(boton_unmute_hover if rect_unmute.collidepoint(pos_mouse) else boton_unmute, rect_unmute.topleft)
         pantalla.blit(boton_vol_up_hover if rect_vol_up.collidepoint(pos_mouse) else boton_vol_up, rect_vol_up.topleft)
         pantalla.blit(boton_vol_down_hover if rect_vol_down.collidepoint(pos_mouse) else boton_vol_down, rect_vol_down.topleft)
-
+    
     elif pantalla_actual == "jugar":
         pantalla.blit(tablero, (0, 0))
         color_turno = ROJO_MAT if turno_actual == "equipo1" else MORADO_IN
         texto_turno = fuente_pregunta.render(f"Turno: {turno_actual.upper()}", True, color_turno)
         pantalla.blit(texto_turno, (10, 10))
-
         for circulo in circulos:
             centro = circulo["centro"]
             radio = circulo["radio"]
@@ -592,31 +587,24 @@ while ejecutando:
             pygame.draw.circle(pantalla, color, centro, radio)
             texto_materia = fuente_ayuda.render(materia, True, NEGRO)
             pantalla.blit(texto_materia, (centro[0] - texto_materia.get_width() // 2, centro[1] - 8))
-
         grupo_equipos.draw(pantalla)
-
         if rect_boton_salir:
             pantalla.blit(boton_salir_hover if rect_boton_salir.collidepoint(pos_mouse) else boton_salir, rect_boton_salir.topleft)
-
         if mostrando_pregunta and datos_pregunta:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
             overlay.fill(NEGRO)
             pantalla.blit(overlay, (0, 0))
-
             titulo_materia = fuente_pregunta.render(f"{datos_pregunta['materia']}", True, MATERIAS.get(datos_pregunta['materia'], BLANCO))
             pantalla.blit(titulo_materia, (ANCHO // 2 - titulo_materia.get_width() // 2, 40))
-
             centro_x = ANCHO // 2
             ancho_caja = min(1100, int(ANCHO * 0.8))
-
             rect_pregunta = dibujar_caja_texto(
                 pantalla, datos_pregunta["pregunta"], fuente_pregunta,
                 centro_x, 100, ancho_caja,
                 color_fondo=(40, 40, 40), color_texto=BLANCO,
                 relleno_x=40, relleno_y=20, radio_borde=18
             )
-
             extra_y = 0
             if datos_pregunta.get("imagen") and datos_pregunta["imagen"].strip():
                 try:
@@ -636,12 +624,10 @@ while ejecutando:
                     extra_y = alto_img + 40
                 except Exception as e:
                     print(f"❌ ERROR al cargar imagen: {datos_pregunta['imagen']} - {e}")
-
             # Modo dibujo
             if datos_pregunta.get("actividad") == "dibujar":
                 mensaje = fuente_ayuda.render("Haz clic en cualquier lugar para entrar al modo dibujo", True, (100, 200, 255))
                 pantalla.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, ALTO - 100))
-
             # Modo organizar
             elif datos_pregunta.get("actividad") == "organizar":
                 y_elemento = rect_pregunta.bottom + extra_y + 30
@@ -663,63 +649,127 @@ while ejecutando:
                         )
                         pantalla.blit(superficie_texto, rect_texto)
                     y_elemento += altura_real + ESPACIO_OPCION
-
                 texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
                 rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
                 color_boton = (200, 0, 0) if rect_terminar.collidepoint(pos_mouse) else (255, 0, 0)
                 pygame.draw.rect(pantalla, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
                 pantalla.blit(texto_terminar, rect_terminar)
-
                 tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_organizar)) // 1000)
                 texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
                 pantalla.blit(texto_tiempo, (1150, 0))
-
             # Modo selección normal
             else:
                 y_base_opciones = rect_pregunta.bottom + extra_y + 30
                 tiene_imagen = bool(datos_pregunta.get("imagen") and datos_pregunta["imagen"].strip())
-
                 if tiene_imagen:
-                    # Layout 2x2
+                    # Layout 2x2 con envoltura y ajuste de fuente
                     ancho_opcion = (ancho_caja - 60) // 2
-                    alto_opcion, espacio = 70, 20
+                    espacio = 20
                     botones_opciones.clear()
+                    fuente_actual = fuente_opciones
+                    max_lineas = 2
+                    ancho_maximo_opcion = ancho_opcion - 20
+
                     for i, opcion in enumerate(datos_pregunta["opciones"]):
+                        texto_completo = f"{i+1}. {opcion}"
+                        lineas = envolver_texto(fuente_actual, texto_completo, ancho_maximo_opcion)
+                        # Reducir fuente si es necesario
+                        temp_fuente = fuente_actual
+                        while len(lineas) > max_lineas and temp_fuente.get_height() > 20:
+                            nuevo_tamano = temp_fuente.get_height() - 2
+                            if nuevo_tamano <= 0:
+                                break
+                            nueva_fuente = pygame.font.SysFont("Arial", nuevo_tamano)
+                            if nueva_fuente is None:
+                                break
+                            lineas = envolver_texto(nueva_fuente, texto_completo, ancho_maximo_opcion)
+                            temp_fuente = nueva_fuente
+
+                        # Calcular altura total del botón
+                        altura_linea = temp_fuente.get_height()
+                        altura_total = len(lineas) * altura_linea + 15
+                        altura_total = max(50, altura_total)
+
                         columna = i % 2
                         fila = i // 2
                         x_opcion = centro_x - ancho_opcion - espacio // 2 + columna * (ancho_opcion + espacio)
-                        y_opcion = y_base_opciones + fila * (alto_opcion + espacio)
-                        rect_boton = pygame.Rect(x_opcion, y_opcion, ancho_opcion, alto_opcion)
+                        y_opcion = y_base_opciones + fila * (altura_total + espacio)
+
+                        rect_boton = pygame.Rect(x_opcion, y_opcion, ancho_opcion, altura_total)
                         esta_sobre = rect_boton.collidepoint(pos_mouse)
                         color_fondo = (120, 120, 120) if esta_sobre else (60, 60, 60)
                         pygame.draw.rect(pantalla, color_fondo, rect_boton, border_radius=12)
-                        texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
-                        pantalla.blit(texto, texto.get_rect(center=rect_boton.center))
+
+                        # Dibujar cada línea centrada
+                        for j, linea in enumerate(lineas):
+                            texto_renderizado = temp_fuente.render(linea, True, BLANCO)
+                            rect_texto = texto_renderizado.get_rect(
+                                centerx=rect_boton.centerx,
+                                top=rect_boton.top + 8 + j * altura_linea
+                            )
+                            pantalla.blit(texto_renderizado, rect_texto)
+
                         botones_opciones.append((rect_boton, i))
-                    y_mensaje = y_base_opciones + 2 * (alto_opcion + espacio) + 10
+
+                    # Calcular y_mensaje
+                    if botones_opciones:
+                        ultimo_rect = botones_opciones[-1][0]
+                        y_mensaje = ultimo_rect.bottom + 20
+                    else:
+                        y_mensaje = y_base_opciones + 10
+
                 else:
-                    # Layout vertical
+                    # Layout vertical con envoltura y ajuste de fuente
                     y_opcion = y_base_opciones
                     botones_opciones.clear()
-                    alto_opcion = 60
+                    fuente_actual = fuente_opciones
+                    max_lineas = 3
+                    ancho_maximo_opcion = ancho_caja - 40
+
                     for i, opcion in enumerate(datos_pregunta["opciones"]):
-                        rect_boton = pygame.Rect(centro_x - ancho_caja // 2, y_opcion, ancho_caja, alto_opcion)
+                        texto_completo = f"{i+1}. {opcion}"
+                        lineas = envolver_texto(fuente_actual, texto_completo, ancho_maximo_opcion)
+                        # Reducir fuente si es necesario
+                        temp_fuente = fuente_actual
+                        while len(lineas) > max_lineas and temp_fuente.get_height() > 20:
+                            nuevo_tamano = temp_fuente.get_height() - 2
+                            if nuevo_tamano <= 0:
+                                break
+                            nueva_fuente = pygame.font.SysFont("Arial", nuevo_tamano)
+                            if nueva_fuente is None:
+                                break
+                            lineas = envolver_texto(nueva_fuente, texto_completo, ancho_maximo_opcion)
+                            temp_fuente = nueva_fuente
+
+                        # Calcular altura total del botón
+                        altura_linea = temp_fuente.get_height()
+                        altura_total = len(lineas) * altura_linea + 20
+                        altura_total = max(60, altura_total)
+
+                        rect_boton = pygame.Rect(centro_x - ancho_caja // 2, y_opcion, ancho_caja, altura_total)
                         esta_sobre = rect_boton.collidepoint(pos_mouse)
                         color_fondo = (120, 120, 120) if esta_sobre else (60, 60, 60)
                         pygame.draw.rect(pantalla, color_fondo, rect_boton, border_radius=12)
-                        texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
-                        pantalla.blit(texto, texto.get_rect(center=rect_boton.center))
+
+                        # Dibujar cada línea centrada
+                        for j, linea in enumerate(lineas):
+                            texto_renderizado = temp_fuente.render(linea, True, BLANCO)
+                            rect_texto = texto_renderizado.get_rect(
+                                centerx=rect_boton.centerx,
+                                top=rect_boton.top + 10 + j * altura_linea
+                            )
+                            pantalla.blit(texto_renderizado, rect_texto)
+
                         botones_opciones.append((rect_boton, i))
-                        y_opcion += alto_opcion + 20
+                        y_opcion += altura_total + 15
+
                     y_mensaje = y_opcion + 10
 
                 mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
                 pantalla.blit(mensaje, (ANCHO // 2 - mensaje.get_width() // 2, y_mensaje))
-
                 tiempo_restante = max(0, (TIEMPO_LIMITE - (tiempo_actual - tiempo_inicio_pregunta)) // 1000)
                 texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 255, 0))
                 pantalla.blit(texto_tiempo, (1150, 0))
-
         if mostrando_retroalimentacion:
             overlay = pygame.Surface((ANCHO, ALTO))
             overlay.set_alpha(200)
@@ -731,14 +781,12 @@ while ejecutando:
             pantalla.blit(texto, rect_texto)
             instruccion = fuente_ayuda.render("Cerrando en 1 segundo...", True, BLANCO)
             pantalla.blit(instruccion, (ANCHO // 2 - instruccion.get_width() // 2, ALTO // 2 + 60))
-
     elif pantalla_actual == "creditos":
         pantalla.blit(fondo, (-50, -150))
         texto = pygame.font.SysFont(None, 60).render("Créditos", True, NEGRO)
         pantalla.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO // 2 - 30))
         if rect_boton_salir:
             pantalla.blit(boton_salir_hover if rect_boton_salir.collidepoint(pos_mouse) else boton_salir, rect_boton_salir.topleft)
-
     elif pantalla_actual == "mago":
         pantalla.fill(CELESTE)
         fuente = pygame.font.SysFont(None, 60)
@@ -748,7 +796,6 @@ while ejecutando:
         pantalla.blit(texto2, (ANCHO // 2 - texto2.get_width() // 2, ALTO // 2))
         if rect_boton_salir:
             pantalla.blit(boton_salir_hover if rect_boton_salir.collidepoint(pos_mouse) else boton_salir, rect_boton_salir.topleft)
-
     elif pantalla_actual == "dibujar":
         if superficie_dibujo is None:
             superficie_dibujo = pygame.Surface((ANCHO, ALTO))
