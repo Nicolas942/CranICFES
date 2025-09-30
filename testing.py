@@ -433,8 +433,8 @@ while ejecutando:
                     rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
                     if rect_terminar.collidepoint(pos_mouse):
                         correcto = elementos_organizar == datos_pregunta["respuesta"]
-                        mensaje_retro = "¡Correcto!" if correcto else "Incorrecto"
-                        color_retro = (0, 255, 0) if correcto else (255, 0, 0)
+                        mensaje_retro = "¡Correcto!" if correcto else f"la respuesta era: {datos_pregunta["respuesta_txt"]}"
+                        color_retro = (0, 255, 0) if correcto else (BLANCO)
                         if correcto:
                             try:
                                 idx_actual = ORDEN_RECORRIDO.index(datos_pregunta["materia"])
@@ -499,8 +499,8 @@ while ejecutando:
                         except (ValueError, TypeError, KeyError):
                             idx_respuesta = None
                         es_correcto = (idx_respuesta == idx_opcion)
-                        mensaje_retro = "¡Correcto!" if es_correcto else "Incorrecto"
-                        color_retro = (0, 255, 0) if es_correcto else (255, 0, 0)
+                        mensaje_retro = "¡Correcto!" if es_correcto else f"la respuesta era: {datos_pregunta["respuesta_txt"]}"
+                        color_retro = (0, 255, 0) if es_correcto else (BLANCO)
                         if es_correcto:
                             try:
                                 idx_actual = ORDEN_RECORRIDO.index(datos_pregunta["materia"])
@@ -747,7 +747,7 @@ while ejecutando:
             texto = fuente_grande.render(mensaje_retro, True, color_retro)
             rect_texto = texto.get_rect(center=(ANCHO // 2, ALTO // 2))
             pantalla.blit(texto, rect_texto)
-            instruccion = fuente_ayuda.render("Cerrando en 1 segundo...", True, BLANCO)
+            instruccion = fuente_ayuda.render("Cerrando en 5 segundo...", True, BLANCO)
             pantalla.blit(instruccion, (ANCHO // 2 - instruccion.get_width() // 2, ALTO // 2 + 60))
 
     elif pantalla_actual == "creditos":
@@ -799,7 +799,7 @@ while ejecutando:
             pantalla.blit(boton_incorrecto, rect_incorrecto)
 
     # Cerrar retroalimentación
-    if mostrando_retroalimentacion and tiempo_actual - temporizador_retro > 1000:
+    if mostrando_retroalimentacion and tiempo_actual - temporizador_retro > 5000:
         mostrando_retroalimentacion = False
 
     pygame.display.flip()
