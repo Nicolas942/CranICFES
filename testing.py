@@ -80,6 +80,7 @@ logo_juego = cargar_imagen("img/logo_juego.png")
 fondo = cargar_imagen("img/FONDO.png")
 tablero = cargar_imagen("img/tablero1.png", (1366, 720))
 mago_personaje = cargar_imagen("img/MAGO_MTMC.png", (100, 100))
+medica_personajes = cargar_imagen("img/medica.png", (100, 100))
 
 # Botones
 boton_ajustes = cargar_imagen("img/AJUSTES.png", (200, 50))
@@ -151,14 +152,20 @@ ORDEN_RECORRIDO = [
 ]
 
 # Equipos
-class Equipo(pygame.sprite.Sprite):
+class Equipo1(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = mago_personaje
         self.rect = self.image.get_rect(topleft=(x, y))
 
-equipo1 = Equipo(510, 20)
-equipo2 = Equipo(420, 20)
+class Equipo2(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = medica_personajes
+        self.rect = self.image.get_rect(topleft=(x-20, y))
+
+equipo1 = Equipo1(510, 20)
+equipo2 = Equipo2(420, 20)
 grupo_equipos = pygame.sprite.Group(equipo1, equipo2)
 
 # ─────────────────────────────────────────────────────────────
@@ -549,7 +556,7 @@ while ejecutando:
                         equipo_actual = equipo1 if turno_actual == "equipo1" else equipo2
                         for c in circulos:
                             if c["materia"] == siguiente_materia:
-                                equipo_actual.rect.center = c["centro"]
+                                equipo_actual.rect.center = c["centro"],
                                 break
                     except ValueError:
                         pass
