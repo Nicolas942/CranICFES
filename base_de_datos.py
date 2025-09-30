@@ -11,7 +11,7 @@ try:
     
     # Selecciona la base de datos y colección
     base_datos = cliente["CranICFES"]
-    coleccion = base_datos["preguntas2"]
+    coleccion = base_datos["preguntas"]
     
     # Prueba de conexión
     cliente.admin.command('ping')
@@ -46,6 +46,7 @@ def obtener_pregunta_aleatoria(materia=None):
             "respuesta": documento.get("respuesta"),  
             "materia": documento["materia"],
             "actividad" : documento["actividad"],
+            "imagen" : documento["imagen"]
         }
     except Exception as ex:
         print("❌ Error al obtener pregunta desde la base de datos:", ex)
