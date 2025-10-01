@@ -413,7 +413,7 @@ while ejecutando:
                 ALTURA_MINIMA_OPCION, ESPACIO_OPCION = 60, 20
                 clic_procesado = False
                 for i, elemento in enumerate(elementos_organizar):
-                    altura_texto = calcular_altura_texto(fuente_opciones, f"{i+1}. {elemento}", ancho_caja - 60)
+                    altura_texto = calcular_altura_texto(fuente_opciones, f"{elemento}", ancho_caja - 60)
                     altura_real = max(ALTURA_MINIMA_OPCION, altura_texto + 20)
                     rect_boton = pygame.Rect(centro_x - ancho_caja // 2, y_elemento, ancho_caja, altura_real)
                     if rect_boton.collidepoint(pos_mouse):
@@ -430,7 +430,7 @@ while ejecutando:
 
                 if not clic_procesado:
                     texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
-                    rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
+                    rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 200))
                     if rect_terminar.collidepoint(pos_mouse):
                         correcto = elementos_organizar == datos_pregunta["respuesta"]
                         mensaje_retro = "¡Correcto!" if correcto else f"la respuesta era: {datos_pregunta["respuesta_txt"]}"
@@ -456,7 +456,7 @@ while ejecutando:
             # Modo dibujo: terminar
             elif pantalla_actual == "dibujar" and not mostrando_validacion_dibujo:
                 texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
-                rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
+                rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 130))
                 if rect_terminar.collidepoint(pos_mouse):
                     mostrando_validacion_dibujo = True
                 else:
@@ -467,8 +467,8 @@ while ejecutando:
 
             # Validación dibujo
             elif pantalla_actual == "dibujar" and mostrando_validacion_dibujo:
-                rect_correcto = fuente_pregunta.render("CORRECTO", True, BLANCO).get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 200))
-                rect_incorrecto = fuente_pregunta.render("INCORRECTO", True, BLANCO).get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 200))
+                rect_correcto = fuente_pregunta.render("CORRECTO", True, BLANCO).get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 150))
+                rect_incorrecto = fuente_pregunta.render("INCORRECTO", True, BLANCO).get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 150))
                 if rect_correcto.collidepoint(pos_mouse):
                     try:
                         idx_actual = ORDEN_RECORRIDO.index(datos_pregunta["materia"])
@@ -665,14 +665,14 @@ while ejecutando:
                 y_elemento = rect_pregunta.bottom + extra_y + 30
                 ALTURA_MINIMA_OPCION, ESPACIO_OPCION = 60, 20
                 for i, elemento in enumerate(elementos_organizar):
-                    altura_texto = calcular_altura_texto(fuente_opciones, f"{i+1}. {elemento}", ancho_caja - 60)
+                    altura_texto = calcular_altura_texto(fuente_opciones, f"{elemento}", ancho_caja - 60)
                     altura_real = max(ALTURA_MINIMA_OPCION, altura_texto + 20)
                     rect_boton = pygame.Rect(centro_x - ancho_caja // 2, y_elemento, ancho_caja, altura_real)
                     esta_sobre = rect_boton.collidepoint(pos_mouse)
                     esta_seleccionado = (i in indices_seleccionados)
                     color_fondo = (120, 120, 255) if esta_seleccionado else (100, 100, 100) if esta_sobre else (50, 50, 50)
                     pygame.draw.rect(pantalla, color_fondo, rect_boton, border_radius=12)
-                    lineas = envolver_texto(fuente_opciones, f"{i+1}. {elemento}", ancho_caja - 60)
+                    lineas = envolver_texto(fuente_opciones, f"{elemento}", ancho_caja - 60)
                     for j, linea in enumerate(lineas):
                         superficie_texto = fuente_opciones.render(linea, True, BLANCO)
                         rect_texto = superficie_texto.get_rect(
@@ -683,7 +683,7 @@ while ejecutando:
                     y_elemento += altura_real + ESPACIO_OPCION
 
                 texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
-                rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
+                rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 200))
                 color_boton = (200, 0, 0) if rect_terminar.collidepoint(pos_mouse) else (255, 0, 0)
                 pygame.draw.rect(pantalla, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
                 pantalla.blit(texto_terminar, rect_terminar)
@@ -711,7 +711,7 @@ while ejecutando:
                         esta_sobre = rect_boton.collidepoint(pos_mouse)
                         color_fondo = (120, 120, 120) if esta_sobre else (60, 60, 60)
                         pygame.draw.rect(pantalla, color_fondo, rect_boton, border_radius=12)
-                        texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
+                        texto = fuente_opciones.render(f"{opcion}", True, BLANCO)
                         pantalla.blit(texto, texto.get_rect(center=rect_boton.center))
                         botones_opciones.append((rect_boton, i))
                     y_mensaje = y_base_opciones + 2 * (alto_opcion + espacio) + 10
@@ -725,7 +725,7 @@ while ejecutando:
                         esta_sobre = rect_boton.collidepoint(pos_mouse)
                         color_fondo = (120, 120, 120) if esta_sobre else (60, 60, 60)
                         pygame.draw.rect(pantalla, color_fondo, rect_boton, border_radius=12)
-                        texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
+                        texto = fuente_opciones.render(f"{opcion}", True, BLANCO)
                         pantalla.blit(texto, texto.get_rect(center=rect_boton.center))
                         botones_opciones.append((rect_boton, i))
                         y_opcion += alto_opcion + 20
@@ -780,7 +780,7 @@ while ejecutando:
             texto_tiempo = fuente_tiempo.render(f"Tiempo: {tiempo_restante}s", True, (255, 0, 0))
             pantalla.blit(texto_tiempo, (1150, 10))
             texto_terminar = fuente_pregunta.render("TERMINAR", True, BLANCO)
-            rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 80))
+            rect_terminar = texto_terminar.get_rect(center=(ANCHO // 2, ALTO - 130))
             color_boton = (200, 0, 0) if rect_terminar.collidepoint(pos_mouse) else (255, 0, 0)
             pygame.draw.rect(pantalla, color_boton, rect_terminar.inflate(40, 20), border_radius=15)
             pantalla.blit(texto_terminar, rect_terminar)
@@ -788,12 +788,12 @@ while ejecutando:
             texto_titulo = fuente_pregunta.render("Considera que la respuesta es correcta", True, ROJO_MAT)
             pantalla.blit(texto_titulo, texto_titulo.get_rect(center=(ANCHO // 2, ALTO // 2 - 80)))
             boton_correcto = fuente_pregunta.render("CORRECTO", True, BLANCO)
-            rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 200))
+            rect_correcto = boton_correcto.get_rect(center=(ANCHO // 2 - 200, ALTO // 2 + 150))
             color_correcto = (0, 200, 0) if rect_correcto.collidepoint(pos_mouse) else (0, 255, 0)
             pygame.draw.rect(pantalla, color_correcto, rect_correcto.inflate(40, 30), border_radius=15)
             pantalla.blit(boton_correcto, rect_correcto)
             boton_incorrecto = fuente_pregunta.render("INCORRECTO", True, BLANCO)
-            rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 200))
+            rect_incorrecto = boton_incorrecto.get_rect(center=(ANCHO // 2 + 200, ALTO // 2 + 150))
             color_incorrecto = (200, 0, 0) if rect_incorrecto.collidepoint(pos_mouse) else (255, 0, 0)
             pygame.draw.rect(pantalla, color_incorrecto, rect_incorrecto.inflate(40, 30), border_radius=15)
             pantalla.blit(boton_incorrecto, rect_incorrecto)
