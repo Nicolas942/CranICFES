@@ -10,6 +10,7 @@ NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
 CELESTE = (135, 206, 250)
 
+
 # === Mapa de materias a colores ===
 materias = {
     "Matematicas": (255, 0, 0),        # Rojo
@@ -320,13 +321,13 @@ while corriendo:
 
             y_opcion = 220
             botones_opciones.clear()
-            for i, opcion in enumerate(pregunta_data["opciones"]):
-                texto = fuente_opciones.render(f"{i+1}. {opcion}", True, BLANCO)
+            for opcion in (pregunta_data["opciones"]):
+                texto = fuente_opciones.render(f"{opcion}", True, BLANCO)
                 rect_boton = texto.get_rect(center=(ANCHO // 2, y_opcion))
                 color_fondo = (100, 100, 100) if rect_boton.collidepoint(mouse_pos) else (50, 50, 50)
                 pygame.draw.rect(ventana, color_fondo, rect_boton.inflate(30, 15), border_radius=10)
                 ventana.blit(texto, rect_boton)
-                botones_opciones.append((rect_boton, i))
+                botones_opciones.append((rect_boton))
                 y_opcion += 60
 
             mensaje = fuente_ayuda.render("Haz clic en tu opción", True, (100, 200, 255))
